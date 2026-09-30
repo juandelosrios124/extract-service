@@ -1,0 +1,43 @@
+# Reverse proxy delante de las réplicas de extract_service.
+# Los valores {$VAR:default} se leen del entorno del contenedor (ver docker-compose.yml).
+
+{
+	auto_https off
+	admin off
+
+	servers {
+		timeouts {
+			# Tiempo máximo para recibir el body del cliente (el PDF)
+			read_body {$PROXY_READ_BODY_TIMEOUT:30s}
+			# Tiempo máximo para escribir la respuesta al cliente
+			write {$PROXY_WRITE_TIMEOUT:2m}
+			idle {$PROXY_IDLE_TIMEOUT:2m}
+		}
+	}
+}
+
+:80 {
+	reverse_proxy {
+		# El DNS de Docker devuelve una IP por réplica del servicio "extract";
+		# Caddy las vuelve a resolver cada "refresh" y reparte entre todas.
+		dynamic a {
+			name extract
+			port 8001
+			refresh 5s
+		}
+		lb_policy round_robin
+
+		# Si una réplica no acepta la conexión, se reintenta en otra durante este tiempo
+		lb_try_duration {$PROXY_TRY_DURATION:5s}
+		fail_duration 10s
+
+		transport http {
+			dial_timeout {$PROXY_DIAL_TIMEOUT:5s}
+			# Tiempo máximo esperando que la réplica empiece a responder (la extracción)
+			response_header_timeout {$PROXY_RESPONSE_TIMEOUT:60s}
+		}
+
+		# Réplica que atendió la solicitud, para verificar el balanceo
+		header_down X-Upstream {http.reverse_proxy.upstream.hostport}
+	}
+}

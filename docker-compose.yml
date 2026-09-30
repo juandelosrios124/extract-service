@@ -1,0 +1,35 @@
+services:
+  # Sin "ports": con varias replicas no pueden publicar el mismo puerto del host.
+  extract:
+    build: .
+    expose:
+      - "8001"
+    environment:
+      PORT: 8001
+      MAX_UPLOAD_SIZE: ${EXTRACT_MAX_UPLOAD_SIZE:-52428800}
+      THREAD_POOL_SIZE: ${EXTRACT_THREAD_POOL_SIZE:-4}
+      LOG_LEVEL: ${EXTRACT_LOG_LEVEL:-INFO}
+    deploy:
+      replicas: ${EXTRACT_REPLICAS:-5}
+      resources:
+        limits:
+          cpus: "${EXTRACT_CPUS:-1.0}"
+          memory: ${EXTRACT_MEMORY:-1g}
+
+  # Punto de entrada unico a extract: balancea entre las replicas.
+  proxy:
+    image: caddy:2.10-alpine
+    ports:
+      - "${PROXY_PORT:-8001}:80"
+    volumes:
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+    environment:
+      PROXY_DIAL_TIMEOUT: ${PROXY_DIAL_TIMEOUT:-5s}
+      PROXY_RESPONSE_TIMEOUT: ${PROXY_RESPONSE_TIMEOUT:-60s}
+      PROXY_TRY_DURATION: ${PROXY_TRY_DURATION:-5s}
+      PROXY_READ_BODY_TIMEOUT: ${PROXY_READ_BODY_TIMEOUT:-30s}
+      PROXY_WRITE_TIMEOUT: ${PROXY_WRITE_TIMEOUT:-2m}
+      PROXY_IDLE_TIMEOUT: ${PROXY_IDLE_TIMEOUT:-2m}
+    depends_on:
+      extract:
+        condition: service_healthy
