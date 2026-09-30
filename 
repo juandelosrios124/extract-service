@@ -1,6 +1,0 @@
-[35m.env.example[m[36m:[m[32m1[m[36m:[m# Configuración de [1;31mextract_service[m (12-Factor: todo por variables de entorno).
-[35mREADME.md[m[36m:[m[32m1[m[36m:[m# [1;31mextract_service[m
-[35mREADME.md[m[36m:[m[32m24[m[36m:[mcd [1;31mextract_service[m
-[35mproxy/Caddyfile[m[36m:[m[32m1[m[36m:[m# Reverse proxy delante de las réplicas de [1;31mextract_service[m.
-[35mproxy/README.md[m[36m:[m[32m3[m[36m:[mReverse proxy [Caddy](https://caddyserver.com/) delante de las réplicas de `[1;31mextract_service[m`.
-[35mtests/stress/README.md[m[36m:[m[32m3[m[36m:[mDos pruebas contra `POST /extract` de `[1;31mextract_service[m`, a través del reverse proxy
