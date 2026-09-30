@@ -1,4 +1,4 @@
-# Reverse proxy delante de las réplicas de extract_service.
+# Reverse proxy delante de las réplicas de extract-service.
 # Los valores {$VAR:default} se leen del entorno del contenedor (ver docker-compose.yml).
 
 {

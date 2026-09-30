@@ -1,6 +1,6 @@
 # proxy
 
-Reverse proxy [Caddy](https://caddyserver.com/) delante de las réplicas de `extract_service`.
+Reverse proxy [Caddy](https://caddyserver.com/) delante de las réplicas de `extract-service`.
 Es el único punto de entrada al servicio: `http://localhost:8001` (`PROXY_PORT`).
 
 ## Balanceo

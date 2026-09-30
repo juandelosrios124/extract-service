@@ -1,4 +1,4 @@
-# extract_service
+# extract-service
 
 Microservicio mínimo y sin estado que extrae el texto de un PDF con PyMuPDF.
 No usa MongoDB, JWT ni Ollama, y procesa el PDF en memoria, sin escribir a disco.
@@ -21,7 +21,6 @@ Los logs salen por stdout.
 ## Uso
 
 ```bash
-cd extract_service
 uv sync
 uv run pytest
 uv run --env-file .env python -m extractor   # después de: cp .env.example .env

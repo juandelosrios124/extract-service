@@ -1,6 +1,6 @@
 # Pruebas de carga
 
-Dos pruebas contra `POST /extract` de `extract_service`, a través del reverse proxy
+Dos pruebas contra `POST /extract` de `extract-service`, a través del reverse proxy
 (`http://localhost:8001`). Las dos usan los mismos 4 PDFs de [`pdfs/`](pdfs/README.md) y
 los envían como `multipart/form-data` (campo `file`).
 
