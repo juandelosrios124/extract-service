@@ -8,18 +8,15 @@ Starlette's form parser, which spools uploads larger than 1MB to disk.
 
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from email.parser import BytesParser
-from email.policy import HTTP
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from extractor.api.dependencies import get_extraction_pool, get_settings
+from extractor.api.multipart import MULTIPART_FILE_FIELD, file_from_multipart
 from extractor.api.schemas import ExtractResponse
 from extractor.config import Settings
 from extractor.services.pdf_extraction import extract_pdf_content
-
-MULTIPART_FILE_FIELD = "file"
 
 router = APIRouter()
 
@@ -87,15 +84,5 @@ async def _read_body_within_limit(request: Request, max_size: int) -> bytes:
 
 def _pdf_bytes_from(body: bytes, content_type: str) -> Optional[bytes]:
     if content_type.startswith("multipart/form-data"):
-        return _file_field_from_multipart(body, content_type)
+        return file_from_multipart(body, content_type)
     return body
-
-
-def _file_field_from_multipart(body: bytes, content_type: str) -> Optional[bytes]:
-    headers = f"Content-Type: {content_type}\r\n\r\n".encode("latin-1")
-    message = BytesParser(policy=HTTP).parsebytes(headers + body)
-
-    for part in message.iter_parts():
-        if part.get_param("name", header="content-disposition") == MULTIPART_FILE_FIELD:
-            return part.get_payload(decode=True)
-    return None
