@@ -1,6 +1,3 @@
-// Basado en el spike_tests.js de la cátedra (original en ./original/).
-// Cambios: la URL, la carpeta de PDFs y el timeout se leen del entorno.
-// Sin variables, el timeout queda en 60s, el valor por defecto de k6, igual que el original.
 import http from 'k6/http';
 import { Trend } from 'k6/metrics';
 import { check } from 'k6';
@@ -15,16 +12,14 @@ export const options = {
     ],
 };
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:8001';
-const PDF_DIR = __ENV.PDF_DIR || '../pdfs';
-const TIMEOUT = __ENV.TIMEOUT || '60s';
+const BASE_URL = 'https://extract.universidad.localhost';
 
 // Carga de PDFs en modo binario durante la inicialización (init context de k6)
 const pdfFiles = [
-    open(`${PDF_DIR}/2020-Scrum-Guide-Spanish-Latin-South-American.pdf`, 'b'),
-    open(`${PDF_DIR}/Essential-Kanban-Condensed-Spanish.pdf`, 'b'),
-    open(`${PDF_DIR}/Filosofia_Lean.pdf`, 'b'),
-    open(`${PDF_DIR}/scrum_manager_historias_usuario.pdf`, 'b'),
+    open('./pdfs/2020-Scrum-Guide-Spanish-Latin-South-American.pdf', 'b'),
+    open('./pdfs/Essential-Kanban-Condensed-Spanish.pdf', 'b'),
+    open('./pdfs/Filosofia Lean.pdf', 'b'),
+    open('./pdfs/scrum_manager_historias_usuario.pdf', 'b'),
 ];
 
 export default function () {
@@ -35,7 +30,6 @@ export default function () {
         headers: {
             'Content-Type': 'application/pdf',
         },
-        timeout: TIMEOUT,
     };
 
     const res = http.post(`${BASE_URL}/extract`, randomPdf, params);
@@ -46,3 +40,5 @@ export default function () {
         'status 200': (r) => r.status === 200,
     });
 }
+
+
