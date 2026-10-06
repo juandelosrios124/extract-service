@@ -1,0 +1,15 @@
+POST http://proxy/extract
+Content-Type: application/pdf
+@/stress/pdfs/2020-Scrum-Guide-Spanish-Latin-South-American.pdf
+
+POST http://proxy/extract
+Content-Type: application/pdf
+@/stress/pdfs/Essential-Kanban-Condensed-Spanish.pdf
+
+POST http://proxy/extract
+Content-Type: application/pdf
+@/stress/pdfs/Filosofia_Lean.pdf
+
+POST http://proxy/extract
+Content-Type: application/pdf
+@/stress/pdfs/scrum_manager_historias_usuario.pdf
