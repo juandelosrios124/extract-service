@@ -34,3 +34,6 @@ services:
     depends_on:
       extract:
         condition: service_healthy
+
+      MAX_CONCURRENT_UPLOADS: ${EXTRACT_MAX_CONCURRENT_UPLOADS:-0}
+      UPLOAD_SLOT_TIMEOUT: ${EXTRACT_UPLOAD_SLOT_TIMEOUT:-15}

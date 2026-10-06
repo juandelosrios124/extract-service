@@ -20,5 +20,11 @@ class Settings(BaseSettings):
     PORT: int = Field(default=8001, ge=1, le=65535)
     MAX_UPLOAD_SIZE: int = Field(default=50 * 1024 * 1024, gt=0)  # bytes
     THREAD_POOL_SIZE: int = Field(default=4, gt=0)
+    # Backpressure: segundos máximos entre que empieza el pedido y que arranca la extracción.
+    # Pasado ese tiempo el cliente ya suele haberse ido: se responde 503 sin gastar CPU.
     MAX_QUEUE_WAIT: float = Field(default=20.0, gt=0)
+    # Backpressure: cuántos pedidos atiende a la vez cada réplica (leer el cuerpo y extraer).
+    # 0 = sin límite. Los demás esperan hasta UPLOAD_SLOT_TIMEOUT segundos y después reciben 503.
+    MAX_CONCURRENT_UPLOADS: int = Field(default=0, ge=0)
+    UPLOAD_SLOT_TIMEOUT: float = Field(default=15.0, gt=0)
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
