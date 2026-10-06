@@ -1,30 +1,15 @@
 # PDFs de las pruebas de carga
 
-Todas las mediciones (k6 y Vegeta) usan el mismo set de datos: los 4 PDFs oficiales de la
-consigna, desde livianos hasta ~9 MB con gráficos/capas.
+Set de 4 PDFs usado en todas las mediciones (k6 y Vegeta). Los nombres coinciden con los de los scripts de la cátedra.
 
-> **Pendiente:** todavía no se agregaron los archivos. Hasta que estén, los scripts fallan
-> con un mensaje que indica cuál falta.
+| Archivo | Tamaño | Páginas | Texto extraído |
+|---|---|---|---|
+| `2020-Scrum-Guide-Spanish-Latin-South-American.pdf` | 0,32 MB | 16 | 35.538 caracteres |
+| `Essential-Kanban-Condensed-Spanish.pdf` | 8,90 MB | 90 | 124.480 caracteres |
+| `Filosofia_Lean.pdf` | 0,67 MB | 42 | 58.520 caracteres |
+| `scrum_manager_historias_usuario.pdf` | 3,83 MB | 62 | 89.202 caracteres |
 
-## Archivos
-
-Los scripts buscan estos nombres en esta carpeta, ordenados de más liviano a más pesado:
-
-| Archivo  | Tamaño   | Contenido                      | Origen |
-|----------|----------|--------------------------------|--------|
-| `01.pdf` | _(a completar)_ | _(a completar)_         | _(a completar)_ |
-| `02.pdf` | _(a completar)_ | _(a completar)_         | _(a completar)_ |
-| `03.pdf` | _(a completar)_ | _(a completar)_         | _(a completar)_ |
-| `04.pdf` | ~9 MB    | Con gráficos/capas             | _(a completar)_ |
-
-Al agregarlos, renombrarlos así y completar la tabla con el nombre original, de dónde se
-descargaron y el tamaño exacto (`ls -l tests/stress/pdfs`).
-
-## Uso desde los scripts
-
-- k6 (`tests/stress/k6/spike.js`) los abre con rutas relativas al script: `../pdfs/<archivo>`.
-- Vegeta (`tests/stress/vegeta/attack.sh`) los busca en `$(dirname attack.sh)/../pdfs`.
-
-En los dos casos la carpeta se puede cambiar con `PDF_DIR` y la lista de archivos con
-`PDF_FILES`, por ejemplo para probar los scripts con otros PDFs sin tocar esta carpeta.
-Cómo correrlos: ver [../README.md](../README.md).
+Notas:
+- En los scripts de la cátedra el tercero se llama `Filosofia Lean.pdf` (con espacio). Acá se guarda con guion bajo para evitar problemas de comillas en la terminal; el contenido es el mismo.
+- Origen: _(completar: de dónde se obtuvieron)_.
+- `tests/stress/generate_pdfs.py` genera un set provisorio en `pdfs_provisorios/` (ignorado por Git). Solo sirve para diagnóstico, no para comparar con la cátedra.
