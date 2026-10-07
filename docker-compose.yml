@@ -9,6 +9,7 @@ services:
       MAX_UPLOAD_SIZE: ${EXTRACT_MAX_UPLOAD_SIZE:-52428800}
       THREAD_POOL_SIZE: ${EXTRACT_THREAD_POOL_SIZE:-4}
       LOG_LEVEL: ${EXTRACT_LOG_LEVEL:-INFO}
+      MAX_QUEUE_WAIT: ${EXTRACT_MAX_QUEUE_WAIT:-20}
     deploy:
       replicas: ${EXTRACT_REPLICAS:-5}
       resources:
@@ -33,3 +34,6 @@ services:
     depends_on:
       extract:
         condition: service_healthy
+
+      MAX_CONCURRENT_UPLOADS: ${EXTRACT_MAX_CONCURRENT_UPLOADS:-0}
+      UPLOAD_SLOT_TIMEOUT: ${EXTRACT_UPLOAD_SLOT_TIMEOUT:-15}

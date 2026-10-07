@@ -7,18 +7,23 @@ Starlette's form parser, which spools uploads larger than 1MB to disk.
 """
 
 import asyncio
+import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from extractor.api.dependencies import get_extraction_pool, get_settings
+from extractor.api.dependencies import get_extraction_pool, get_settings, get_upload_slots
 from extractor.api.multipart import MULTIPART_FILE_FIELD, file_from_multipart
 from extractor.api.schemas import ExtractResponse
 from extractor.config import Settings
-from extractor.services.pdf_extraction import extract_pdf_content
+from extractor.services.pdf_extraction import PdfExtraction, extract_pdf_content
 
 router = APIRouter()
+
+
+class RequestExpired(Exception):
+    """The request waited longer than MAX_QUEUE_WAIT before extraction could start."""
 
 
 @router.post(
@@ -46,6 +51,36 @@ async def extract_pdf(
     request: Request,
     settings: Settings = Depends(get_settings),
     extraction_pool: ThreadPoolExecutor = Depends(get_extraction_pool),
+    upload_slots: Optional[asyncio.Semaphore] = Depends(get_upload_slots),
+) -> ExtractResponse:
+    started_at = time.monotonic()
+    if upload_slots is None:
+        return await _extract(request, settings, extraction_pool, started_at)
+
+    await _acquire_slot(upload_slots, settings.UPLOAD_SLOT_TIMEOUT)
+    try:
+        return await _extract(request, settings, extraction_pool, started_at)
+    finally:
+        upload_slots.release()
+
+
+async def _acquire_slot(upload_slots: asyncio.Semaphore, timeout: float) -> None:
+    """Wait for a free slot without reading the body; answer 503 if none frees up in time."""
+    try:
+        await asyncio.wait_for(upload_slots.acquire(), timeout=timeout)
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Servicio saturado: no hay cupo para atender el pedido",
+            headers={"Retry-After": "1"},
+        )
+
+
+async def _extract(
+    request: Request,
+    settings: Settings,
+    extraction_pool: ThreadPoolExecutor,
+    started_at: float,
 ) -> ExtractResponse:
     body = await _read_body_within_limit(request, settings.MAX_UPLOAD_SIZE)
     pdf_bytes = _pdf_bytes_from(body, request.headers.get("content-type", ""))
@@ -58,7 +93,17 @@ async def extract_pdf(
 
     try:
         extraction = await asyncio.get_running_loop().run_in_executor(
-            extraction_pool, extract_pdf_content, pdf_bytes
+            extraction_pool,
+            _extract_if_not_expired,
+            pdf_bytes,
+            started_at,
+            settings.MAX_QUEUE_WAIT,
+        )
+    except RequestExpired:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Servicio saturado: el pedido esperó demasiado en la cola",
+            headers={"Retry-After": "1"},
         )
     except ValueError:
         raise HTTPException(
@@ -67,6 +112,15 @@ async def extract_pdf(
         )
 
     return ExtractResponse(content=extraction.content, page_count=extraction.page_count)
+
+
+def _extract_if_not_expired(
+    pdf_bytes: bytes, started_at: float, max_wait: float
+) -> PdfExtraction:
+    """Runs in a worker thread: skip the work if the request already expired in the queue."""
+    if time.monotonic() - started_at > max_wait:
+        raise RequestExpired
+    return extract_pdf_content(pdf_bytes)
 
 
 async def _read_body_within_limit(request: Request, max_size: int) -> bytes:
