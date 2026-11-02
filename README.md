@@ -2,7 +2,7 @@
 
 Microservicio sin estado que extrae el texto de un PDF. Trabajo práctico de Desarrollo de Software (UTN Facultad Regional San Rafael): test de carga, estrés y optimización.
 
-Las mediciones, las decisiones de diseño y el análisis del cuello de botella están en [`docs/informe.md`](docs/informe.md).
+Las mediciones, las decisiones de diseño y el análisis del cuello de botella están en [`informe.md`](informe.md).
 
 ## Inicio rápido
 
@@ -122,7 +122,8 @@ extractor/            código del servicio (api, services, config, main)
 proxy/Caddyfile       reverse proxy y balanceo
 tests/                tests unitarios
 tests/stress/         PDFs oficiales, scripts de k6 y Vegeta, resultados
-docs/                 informe técnico y bitácora de mediciones
+informe.md            informe técnico
+docs/                 bitácora de mediciones
 docker-compose.yml    5 réplicas con límites de recursos y Caddy
 ```
 
