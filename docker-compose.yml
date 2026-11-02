@@ -4,6 +4,13 @@ services:
     build: .
     expose:
       - "8001"
+    networks:
+      # Red del proyecto: por aca entra el proxy, el balanceo no cambia.
+      default:
+      # Red externa compartida con Consul y documents-service (issue #18).
+      mired:
+        aliases:
+          - extract-service
     environment:
       PORT: 8001
       MAX_UPLOAD_SIZE: ${EXTRACT_MAX_UPLOAD_SIZE:-52428800}
@@ -37,3 +44,12 @@ services:
     depends_on:
       extract:
         condition: service_healthy
+
+# El proxy no se declara en "mired" a proposito: queda solo en la red del
+# proyecto, asi proxy -> extract sigue igual que antes.
+networks:
+  # Externa y compartida por los tres repos. Se crea una sola vez por maquina:
+  #   docker network create mired
+  mired:
+    name: ${SHARED_NETWORK:-mired}
+    external: true
