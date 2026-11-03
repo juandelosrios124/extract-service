@@ -12,6 +12,11 @@ Requisitos: Docker con Compose v2 (se usa `--wait`) y unos 4 GB de RAM libres. L
 git clone https://github.com/juandelosrios124/extract-service.git
 cd extract-service
 git checkout v1.0
+
+# Red externa compartida con Consul y documents-service: una sola vez por
+# maquina. Si ya existe (la pudo crear otro repo), ignorar el error.
+docker network create mired
+
 docker compose up --build -d --wait
 ```
 
@@ -57,6 +62,7 @@ Todo se configura por variables de entorno (Twelve-Factor). Los valores por defe
 | `EXTRACT_MAX_UPLOAD_SIZE` | `52428800` | 50 MiB; el cuerpo se corta apenas se supera |
 | `EXTRACT_LOG_LEVEL` | `INFO` | Logs a stdout |
 | `PROXY_PORT` | `8001` | Puerto publicado |
+| `SHARED_NETWORK` | `mired` | Nombre de la red externa compartida con Consul y documents-service. Es la misma variable en los tres repos: si se cambia, hay que cambiarla en todos |
 
 Los timeouts de Caddy (`PROXY_DIAL_TIMEOUT`, `PROXY_TRY_DURATION`, `PROXY_RESPONSE_TIMEOUT`, `PROXY_READ_BODY_TIMEOUT`, `PROXY_WRITE_TIMEOUT`, `PROXY_IDLE_TIMEOUT`) también son variables; ver `.env.example`.
 
@@ -69,6 +75,25 @@ EXTRACT_MAX_CONCURRENT_UPLOADS=0 EXTRACT_MAX_QUEUE_WAIT=1000 docker compose up -
 ```
 
 En PowerShell: `$env:EXTRACT_MAX_CONCURRENT_UPLOADS="0"; $env:EXTRACT_MAX_QUEUE_WAIT="1000"; docker compose up -d --force-recreate --wait`.
+
+## Red compartida
+
+Cada réplica vive en **dos** redes:
+
+- `extract-service_default`, la red privada que crea Compose para este proyecto. Por ahí entra el proxy, así que el balanceo no cambia en nada respecto de antes.
+- `mired`, la red Docker **externa** que comparten los tres repos del trabajo práctico ([pdf_extractext-infra](https://github.com/juandelosrios124/pdf_extractext-infra), este y [documents-service](https://github.com/OlivettiSantino/documents-service)). Gracias a ella Consul puede chequear la IP de cada réplica y `documents-service` puede llamarlas directo, sin pasar por el puerto publicado en el host.
+
+Al ser externa, hay que crearla **una sola vez por máquina y antes** del primer `docker compose up`; es el único paso previo que agrega:
+
+```bash
+docker network create mired
+```
+
+`docker compose down` no la borra, justamente porque la comparten los otros stacks. El nombre se configura con `SHARED_NETWORK` (default `mired`), variable común a los tres repos.
+
+Desde cualquier contenedor de `mired`, las réplicas se alcanzan en `http://extract:8001`: el DNS de Docker devuelve una IP por réplica. También responden al alias `extract-service`, pero el nombre canónico es `extract`.
+
+El **proxy no se suma a `mired`** a propósito: queda solo en la red del proyecto para que `proxy → extract` siga siendo exactamente lo de antes. Quien esté en `mired` y quiera pasar por el balanceador puede seguir usando el puerto publicado en el host (`http://host.docker.internal:8001`).
 
 ## Arquitectura
 
