@@ -17,6 +17,11 @@ services:
       THREAD_POOL_SIZE: ${EXTRACT_THREAD_POOL_SIZE:-1}
       LOG_LEVEL: ${EXTRACT_LOG_LEVEL:-INFO}
       MAX_QUEUE_WAIT: ${EXTRACT_MAX_QUEUE_WAIT:-20}
+      # Service discovery (issue #16). Apagado por defecto: sin Consul el
+      # servicio funciona igual. El token sale del .env, nunca del repo.
+      CONSUL_ENABLED: ${CONSUL_ENABLED:-false}
+      CONSUL_HTTP_ADDR: ${CONSUL_HTTP_ADDR:-http://consul:8500}
+      CONSUL_HTTP_TOKEN: ${CONSUL_HTTP_TOKEN:-}
     deploy:
       replicas: ${EXTRACT_REPLICAS:-5}
       resources:

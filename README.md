@@ -63,6 +63,9 @@ Todo se configura por variables de entorno (Twelve-Factor). Los valores por defe
 | `EXTRACT_LOG_LEVEL` | `INFO` | Logs a stdout |
 | `PROXY_PORT` | `8001` | Puerto publicado |
 | `SHARED_NETWORK` | `mired` | Nombre de la red externa compartida con Consul y documents-service. Es la misma variable en los tres repos: si se cambia, hay que cambiarla en todos |
+| `CONSUL_ENABLED` | `false` | Autorregistro en Consul. Apagado: el servicio funciona igual sin Consul |
+| `CONSUL_HTTP_ADDR` | `http://consul:8500` | Agente de Consul, visto desde `mired` |
+| `CONSUL_HTTP_TOKEN` | *(vacío)* | Token de ACL de Consul. Solo por entorno, nunca en el repo |
 
 Los timeouts de Caddy (`PROXY_DIAL_TIMEOUT`, `PROXY_TRY_DURATION`, `PROXY_RESPONSE_TIMEOUT`, `PROXY_READ_BODY_TIMEOUT`, `PROXY_WRITE_TIMEOUT`, `PROXY_IDLE_TIMEOUT`) también son variables; ver `.env.example`.
 
@@ -94,6 +97,43 @@ docker network create mired
 Desde cualquier contenedor de `mired`, las réplicas se alcanzan en `http://extract:8001`: el DNS de Docker devuelve una IP por réplica. También responden al alias `extract-service`, pero el nombre canónico es `extract`.
 
 El **proxy no se suma a `mired`** a propósito: queda solo en la red del proyecto para que `proxy → extract` siga siendo exactamente lo de antes. Quien esté en `mired` y quiera pasar por el balanceador puede seguir usando el puerto publicado en el host (`http://host.docker.internal:8001`).
+
+### Service discovery con Consul
+
+Cada réplica puede registrarse sola en [Consul](https://github.com/juandelosrios124/pdf_extractext-infra) al arrancar y desregistrarse al apagarse. Viene **apagado**: sin Consul el servicio funciona igual, y si el registro falla la réplica arranca de todas formas (solo queda un `WARNING` en el log).
+
+Para activarlo, con Consul levantado en `mired`:
+
+```bash
+CONSUL_ENABLED=true CONSUL_HTTP_TOKEN=<el mismo UUID que el .env de infra> docker compose up -d --force-recreate --wait
+```
+
+En PowerShell: `$env:CONSUL_ENABLED="true"; $env:CONSUL_HTTP_TOKEN="<uuid>"; docker compose up -d --force-recreate --wait`.
+
+Lo que registra cada réplica:
+
+| Campo | Valor | Por qué |
+|---|---|---|
+| `ID` | hostname del contenedor | Único por réplica, así las 5 conviven en el catálogo |
+| `Name` | `extract` | El nombre con el que la busca `documents-service` |
+| `Address` | su IP en `mired` | La réplica está en dos redes; se publica la de la red compartida, que es la que ve Consul |
+| `Port` | `8001` | |
+| `Check` | `HTTP` a `http://<IP>:8001/health`, `Interval 10s`, `Timeout 2s` | A la IP de la réplica y no a `localhost`, que desde Consul es el propio contenedor de Consul |
+| `DeregisterCriticalServiceAfter` | `1m` | Un `docker kill` no da tiempo a desregistrarse: Consul la saca del catálogo por su cuenta |
+
+Comprobar:
+
+```bash
+# Las 5 replicas en el catalogo, passing
+curl -s http://127.0.0.1:8500/v1/health/service/extract | jq -r '.[] | "\(.Service.ID) \(.Service.Address) \(.Checks[-1].Status)"'
+
+# Una se cae: pasa a critical y al minuto desaparece del catalogo
+docker kill extract-service-extract-1
+```
+
+La UI está en <http://127.0.0.1:8500/ui>.
+
+El token de ACL se toma de `CONSUL_HTTP_TOKEN` y viaja en el header `X-Consul-Token`; no está en el repo ni se escribe en los logs.
 
 ## Arquitectura
 
@@ -144,6 +184,7 @@ Los scripts `tests/stress/k6/spike.js` y `tests/stress/vegeta/attack.sh` envían
 
 ```
 extractor/            código del servicio (api, services, config, main)
+extractor/services/consul.py  autorregistro de la réplica en Consul
 proxy/Caddyfile       reverse proxy y balanceo
 tests/                tests unitarios
 tests/stress/         PDFs oficiales, scripts de k6 y Vegeta, resultados
