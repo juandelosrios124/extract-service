@@ -5,7 +5,16 @@ from pydantic import ValidationError
 
 from extractor.config import Settings
 
-ENV_VARS = ("HOST", "PORT", "MAX_UPLOAD_SIZE", "THREAD_POOL_SIZE", "LOG_LEVEL")
+ENV_VARS = (
+    "HOST",
+    "PORT",
+    "MAX_UPLOAD_SIZE",
+    "THREAD_POOL_SIZE",
+    "LOG_LEVEL",
+    "CONSUL_ENABLED",
+    "CONSUL_HTTP_ADDR",
+    "CONSUL_HTTP_TOKEN",
+)
 
 
 @pytest.fixture(autouse=True)
@@ -62,3 +71,24 @@ def test_settings_do_not_read_dotenv_files(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
     assert Settings().PORT == 8001
+
+
+def test_consul_viene_apagado_por_defecto():
+    """CONSUL_ENABLED=false: el servicio funciona igual sin Consul (issue #16)."""
+    settings = Settings()
+
+    assert settings.CONSUL_ENABLED is False
+    assert settings.CONSUL_HTTP_ADDR == "http://consul:8500"
+    assert settings.CONSUL_HTTP_TOKEN == ""
+
+
+def test_consul_se_configura_por_entorno(monkeypatch):
+    monkeypatch.setenv("CONSUL_ENABLED", "true")
+    monkeypatch.setenv("CONSUL_HTTP_ADDR", "http://otro-consul:8500")
+    monkeypatch.setenv("CONSUL_HTTP_TOKEN", "un-uuid")
+
+    settings = Settings()
+
+    assert settings.CONSUL_ENABLED is True
+    assert settings.CONSUL_HTTP_ADDR == "http://otro-consul:8500"
+    assert settings.CONSUL_HTTP_TOKEN == "un-uuid"
