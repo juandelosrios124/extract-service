@@ -124,14 +124,20 @@ Lo que registra cada réplica:
 Comprobar:
 
 ```bash
-# Las 5 replicas en el catalogo, passing
-curl -s http://127.0.0.1:8500/v1/health/service/extract | jq -r '.[] | "\(.Service.ID) \(.Service.Address) \(.Checks[-1].Status)"'
+# Que servicios ve Consul: deberia listar "extract"
+docker exec pdf_extractext-infra-consul-1 consul catalog services
 
-# Una se cae: pasa a critical y al minuto desaparece del catalogo
+# Las 5 replicas con su ID, su IP de mired y el estado del check (sin jq)
+curl -s http://127.0.0.1:8500/v1/health/service/extract | python -c "import sys,json;[print(s['Service']['ID'], s['Service']['Address'], [c['Status'] for c in s['Checks'] if c['CheckID'].startswith('service:')][0]) for s in json.load(sys.stdin)]"
+
+# Solo las que estan passing
+curl -s "http://127.0.0.1:8500/v1/health/service/extract?passing"
+
+# Una se cae: pasa a critical y, un minuto despues, desaparece del catalogo
 docker kill extract-service-extract-1
 ```
 
-La UI está en <http://127.0.0.1:8500/ui>.
+La UI está en <http://127.0.0.1:8500/ui>. El nombre del contenedor de Consul sale del proyecto Compose de infra; si lo levantaste con otro nombre, ajustá el `docker exec`.
 
 El token de ACL se toma de `CONSUL_HTTP_TOKEN` y viaja en el header `X-Consul-Token`; no está en el repo ni se escribe en los logs.
 
