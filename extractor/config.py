@@ -28,3 +28,11 @@ class Settings(BaseSettings):
     MAX_CONCURRENT_UPLOADS: int = Field(default=0, ge=0)
     UPLOAD_SLOT_TIMEOUT: float = Field(default=15.0, gt=0)
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+
+    # Service discovery. Estos tres nombres son comunes a los tres repos del
+    # proyecto (infra, extract y documents): no renombrarlos.
+    # Apagado por defecto: sin Consul el servicio funciona igual.
+    CONSUL_ENABLED: bool = False
+    CONSUL_HTTP_ADDR: str = "http://consul:8500"
+    # Token de ACL: solo por entorno, nunca en el repo.
+    CONSUL_HTTP_TOKEN: str = ""
