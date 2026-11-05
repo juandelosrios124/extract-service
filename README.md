@@ -46,6 +46,8 @@ docker compose down
 
 Errores: `400` (sin PDF o PDF inválido), `413` (supera `MAX_UPLOAD_SIZE`) y `503` con `Retry-After: 1` cuando el servicio está saturado (sin cupo o pedido vencido). Un `503` indica reintentar más tarde; no es una falla del servicio.
 
+**Correlación.** Todo pedido acepta el header `X-Request-ID`. Si llega, se respeta; si no, se genera uno. El id vuelve en la respuesta y aparece en cada línea de log del pedido, incluido el access log de uvicorn y lo que loguea la extracción. Es el mismo header que propaga `documents-service`, así que un pedido se puede seguir por los dos servicios con el mismo id.
+
 ## Configuración y valores por defecto
 
 Todo se configura por variables de entorno (Twelve-Factor). Los valores por defecto ya están en `docker-compose.yml` y documentados en `.env.example`. Para cambiarlos, copiá `.env.example` a `.env` o exportá la variable antes de `docker compose up`. Los valores por defecto del código están en `extractor/config.py` y son los mismos, así que fuera de Compose el servicio arranca con esta misma configuración.
@@ -61,6 +63,7 @@ Todo se configura por variables de entorno (Twelve-Factor). Los valores por defe
 | `EXTRACT_MAX_QUEUE_WAIT` | `20` | Si un pedido ya esperó 20 s antes de empezar a extraer, se descarta con `503` sin gastar CPU |
 | `EXTRACT_MAX_UPLOAD_SIZE` | `52428800` | 50 MiB; el cuerpo se corta apenas se supera |
 | `EXTRACT_LOG_LEVEL` | `INFO` | Logs a stdout |
+| `EXTRACT_LOG_FORMAT` | `json` | `json` emite un objeto por línea con `request_id`, para recolectores de logs; `text` queda legible en una terminal. El default del código es `text` |
 | `PROXY_PORT` | `8001` | Puerto publicado |
 | `SHARED_NETWORK` | `mired` | Nombre de la red externa compartida con Consul y documents-service. Es la misma variable en los tres repos: si se cambia, hay que cambiarla en todos |
 | `CONSUL_ENABLED` | `false` | Autorregistro en Consul. Apagado: el servicio funciona igual sin Consul |
