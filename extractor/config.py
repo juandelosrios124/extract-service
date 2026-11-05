@@ -40,3 +40,19 @@ class Settings(BaseSettings):
     CONSUL_HTTP_ADDR: str = "http://consul:8500"
     # Token de ACL: solo por entorno, nunca en el repo.
     CONSUL_HTTP_TOKEN: str = ""
+
+    # Traefik, configurado con tags en el registro de Consul (issue #32). El
+    # breaker cuenta el rango [500, 503): deja afuera el 503 del backpressure,
+    # que es la respuesta sana de una replica llena y no una falla. Si contara,
+    # cuanto mejor descarta carga el servicio, mas probable que Traefik lo corte
+    # del todo. Ver "Publicacion en Traefik" en el README.
+    TRAEFIK_CB_EXPRESSION: str = (
+        "NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 503, 0, 600) > 0.50"
+    )
+    TRAEFIK_CB_FALLBACK: str = "10s"
+    TRAEFIK_CB_RECOVERY: str = "10s"
+    TRAEFIK_RETRY_ATTEMPTS: int = Field(default=2, ge=1)
+    # Tope de pedidos simultaneos en el borde. El doble de la capacidad agregada
+    # (5 replicas x 8 cupos): el control primario sigue siendo la admision por
+    # cupos de la app, que es la que esta medida en el informe.
+    TRAEFIK_INFLIGHT: int = Field(default=80, gt=0)

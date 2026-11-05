@@ -21,11 +21,20 @@ services:
       # Backpressure: las lee la app, no el proxy.
       MAX_CONCURRENT_UPLOADS: ${EXTRACT_MAX_CONCURRENT_UPLOADS:-8}
       UPLOAD_SLOT_TIMEOUT: ${EXTRACT_UPLOAD_SLOT_TIMEOUT:-15}
-      # Service discovery (issue #16). Apagado por defecto: sin Consul el
-      # servicio funciona igual. El token sale del .env, nunca del repo.
-      CONSUL_ENABLED: ${CONSUL_ENABLED:-false}
+      # Service discovery (issue #16). Encendido por defecto desde la #32:
+      # Traefik descubre las replicas por el catalogo de Consul. Si Consul no
+      # esta, el registro falla con un WARNING y la replica arranca igual. El
+      # token sale del .env, nunca del repo.
+      CONSUL_ENABLED: ${CONSUL_ENABLED:-true}
       CONSUL_HTTP_ADDR: ${CONSUL_HTTP_ADDR:-http://consul:8500}
       CONSUL_HTTP_TOKEN: ${CONSUL_HTTP_TOKEN:-}
+      # Tags con los que Traefik publica el servicio (issue #32). El breaker
+      # cuenta [500, 503): el 503 del backpressure no abre el circuito.
+      TRAEFIK_CB_EXPRESSION: "${TRAEFIK_CB_EXPRESSION:-NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 503, 0, 600) > 0.50}"
+      TRAEFIK_CB_FALLBACK: ${TRAEFIK_CB_FALLBACK:-10s}
+      TRAEFIK_CB_RECOVERY: ${TRAEFIK_CB_RECOVERY:-10s}
+      TRAEFIK_RETRY_ATTEMPTS: ${TRAEFIK_RETRY_ATTEMPTS:-2}
+      TRAEFIK_INFLIGHT: ${TRAEFIK_INFLIGHT:-80}
     deploy:
       replicas: ${EXTRACT_REPLICAS:-5}
       resources:

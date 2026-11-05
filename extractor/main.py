@@ -12,7 +12,7 @@ from fastapi import FastAPI
 from extractor.api import extract, health
 from extractor.api.middleware import RequestIdMiddleware
 from extractor.config import Settings
-from extractor.services.consul import Registrar, build_registrar
+from extractor.services.consul import Registrar, build_registrar, traefik_tags
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +51,7 @@ def create_app(settings: Settings, *, consul_registrar: Optional[Registrar] = No
                     consul_addr=settings.CONSUL_HTTP_ADDR,
                     token=settings.CONSUL_HTTP_TOKEN,
                     port=settings.PORT,
+                    tags=traefik_tags(settings),
                 )
             registered = (
                 await asyncio.to_thread(registrar.register)
