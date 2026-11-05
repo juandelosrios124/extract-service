@@ -1,6 +1,6 @@
 # Informe técnico: concurrencia, backpressure y límites de CPU en el microservicio `/extract`
 
-Versión v1.0 · Desarrollo de Software · UTN Facultad Regional San Rafael
+Versión v1.1 · Desarrollo de Software · UTN Facultad Regional San Rafael
 Autores: Juan Ignacio De Los Rios, Santino Olivetti
 
 > Convenciones: lo marcado como **hipótesis** no fue aislado con un experimento propio.
@@ -149,6 +149,8 @@ Otras mediciones del proceso:
 
 **Lectura.** Los fallos totales bajan de ~465 a 358 y se transforman: 203 timeouts menos y 96 `503` rápidos. El servicio rechaza pronto lo que no puede atender y completa más del resto. Para Vegeta un `503` cuenta como fallo, de modo que la ganancia proviene de **no gastar capacidad en pedidos que iban a expirar** (hipótesis coherente con las respuestas desperdiciadas de la línea base). Además, el límite evita acumular cuerpos grandes en memoria, que fue el origen de varios incidentes del proceso (agotamiento de la memoria de la máquina virtual de Docker).
 
+**Corrección sobre la validez de este experimento.** En `v1.0`, `MAX_CONCURRENT_UPLOADS` y `UPLOAD_SLOT_TIMEOUT` estaban declaradas en el `environment` del **proxy** y no en el de `extract`, así que nunca llegaban a las réplicas: las dos corridas comparadas arriba tuvieron el mismo valor efectivo (`MAX_CONCURRENT_UPLOADS=0`, sin límite) y lo único que cambiaba entre A y C era `MAX_QUEUE_WAIT` (1000 s contra 20 s). La diferencia medida (+7,2 puntos de éxito) solo puede venir del **descarte de pedidos vencidos**, no de la admisión por cupos, y los 96 `503` observados son los de `MAX_QUEUE_WAIT`. Los números son correctos; lo que estaba mal era el mecanismo al que se atribuían. El cableado se corrigió en `a0ac0bf` (#27) y los cupos recién actúan desde `v1.1`; la comparación con los cupos realmente activos queda pendiente de volver a medir.
+
 **Decisión.** La configuración C es el valor por defecto de `docker-compose.yml` y `.env.example`.
 
 ### 5.4 Proceso de investigación (resumen cronológico)
@@ -209,7 +211,7 @@ Trabajo futuro:
 
 ```bash
 git clone https://github.com/juandelosrios124/extract-service.git
-cd extract-service && git checkout v1.0
+cd extract-service && git checkout v1.1
 docker compose up --build -d --wait
 
 # Vegeta, perfil de la cátedra (red interna)

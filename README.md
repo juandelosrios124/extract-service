@@ -1,4 +1,4 @@
-# extract-service (v1.0)
+# extract-service (v1.1)
 
 Microservicio sin estado que extrae el texto de un PDF. Trabajo práctico de Desarrollo de Software (UTN Facultad Regional San Rafael): test de carga, estrés y optimización.
 
@@ -11,7 +11,7 @@ Requisitos: Docker con Compose v2 (se usa `--wait`) y unos 4 GB de RAM libres. L
 ```bash
 git clone https://github.com/juandelosrios124/extract-service.git
 cd extract-service
-git checkout v1.0
+git checkout v1.1
 
 # Red externa compartida con Consul y documents-service: una sola vez por
 # maquina. Si ya existe (la pudo crear otro repo), ignorar el error.
