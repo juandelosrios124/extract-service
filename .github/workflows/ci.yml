@@ -12,8 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Misma version de uv que el Dockerfile.
-      - uses: astral-sh/setup-uv@v10
+      # setup-uv no publica tag flotante de major (no existe @v10), asi que va
+      # la version exacta. uv fijado al mismo que usa el Dockerfile.
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: "0.10.11"
 
