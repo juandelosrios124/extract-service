@@ -10,7 +10,7 @@ import json
 import logging
 import socket
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable, Optional, Protocol
 from urllib.parse import urlsplit
 
