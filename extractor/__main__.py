@@ -13,7 +13,7 @@ from extractor.main import create_app
 
 def main() -> None:
     settings = Settings()
-    configure_logging(settings.LOG_LEVEL)
+    configure_logging(settings.LOG_LEVEL, settings.LOG_FORMAT)
     uvicorn.run(
         create_app(settings),
         host=settings.HOST,

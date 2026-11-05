@@ -10,6 +10,7 @@ from typing import Optional
 from fastapi import FastAPI
 
 from extractor.api import extract, health
+from extractor.api.middleware import RequestIdMiddleware
 from extractor.config import Settings
 from extractor.services.consul import Registrar, build_registrar
 
@@ -67,6 +68,8 @@ def create_app(settings: Settings, *, consul_registrar: Optional[Registrar] = No
 
     app = FastAPI(title="PDF Extract Service", version="0.1.0", lifespan=lifespan)
     app.state.settings = settings
+    # Lo mas externo: todo lo que loguee el pedido lleva su request id.
+    app.add_middleware(RequestIdMiddleware)
     app.include_router(extract.router, prefix="/extract", tags=["Extract"])
     app.include_router(health.router, prefix="/health", tags=["Health"])
     return app

@@ -7,6 +7,7 @@ Starlette's form parser, which spools uploads larger than 1MB to disk.
 """
 
 import asyncio
+import contextvars
 import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
@@ -91,9 +92,13 @@ async def _extract(
             detail="No se recibió ningún PDF",
         )
 
+    # run_in_executor no copia los ContextVar al thread, asi que sin esto las
+    # lineas que loguea la extraccion saldrian con request_id "-" (issue #37).
+    contexto = contextvars.copy_context()
     try:
         extraction = await asyncio.get_running_loop().run_in_executor(
             extraction_pool,
+            contexto.run,
             _extract_if_not_expired,
             pdf_bytes,
             started_at,

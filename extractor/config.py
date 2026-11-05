@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     MAX_CONCURRENT_UPLOADS: int = Field(default=8, ge=0)
     UPLOAD_SLOT_TIMEOUT: float = Field(default=15.0, gt=0)
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    # json para los recolectores de logs, text para leer en una terminal.
+    LOG_FORMAT: Literal["text", "json"] = "text"
 
     # Service discovery. Estos tres nombres son comunes a los tres repos del
     # proyecto (infra, extract y documents): no renombrarlos.
