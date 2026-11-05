@@ -3,8 +3,11 @@
 import logging
 
 import pytest
+from fastapi.testclient import TestClient
 
+from extractor.config import Settings
 from extractor.logging_config import configure_logging
+from extractor.main import create_app
 
 
 @pytest.fixture(autouse=True)
@@ -44,3 +47,22 @@ def test_configure_logging_is_idempotent(capsys):
     logging.getLogger("extractor.test").info("una sola vez")
 
     assert capsys.readouterr().out.count("una sola vez") == 1
+
+
+def test_al_arrancar_loguea_la_configuracion_efectiva_sin_el_token(caplog):
+    """Issue #31: la réplica deja por escrito qué configuración recibió."""
+    settings = Settings(
+        THREAD_POOL_SIZE=3,
+        MAX_CONCURRENT_UPLOADS=2,
+        CONSUL_HTTP_TOKEN="un-token-que-no-debe-aparecer",
+    )
+
+    with caplog.at_level(logging.INFO):
+        with TestClient(create_app(settings)):
+            pass
+
+    assert "Configuración efectiva" in caplog.text
+    assert "'THREAD_POOL_SIZE': 3" in caplog.text
+    assert "'MAX_CONCURRENT_UPLOADS': 2" in caplog.text
+    assert "un-token-que-no-debe-aparecer" not in caplog.text
+    assert "CONSUL_HTTP_TOKEN" not in caplog.text

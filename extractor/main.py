@@ -1,6 +1,7 @@
 """Composition root: builds the FastAPI app from explicit settings."""
 
 import asyncio
+import logging
 from collections.abc import AsyncIterator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
@@ -12,12 +13,21 @@ from extractor.api import extract, health
 from extractor.config import Settings
 from extractor.services.consul import Registrar, build_registrar
 
+logger = logging.getLogger(__name__)
+
 
 def create_app(settings: Settings, *, consul_registrar: Optional[Registrar] = None) -> FastAPI:
     """Arma la app. ``consul_registrar`` permite inyectar el registro en los tests."""
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        # Qué configuración recibió realmente esta réplica. Sin esto, una
+        # variable que no llega (como en #27) pasa inadvertida.
+        logger.info(
+            "Configuración efectiva: %s",
+            settings.model_dump(exclude={"CONSUL_HTTP_TOKEN"}),
+        )
+
         # PyMuPDF is CPU-bound: run it off the event loop in a bounded pool.
         with ThreadPoolExecutor(
             max_workers=settings.THREAD_POOL_SIZE,
