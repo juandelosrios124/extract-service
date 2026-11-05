@@ -134,7 +134,8 @@ Otras mediciones del proceso:
 
 **Criterio de los valores** (razonamiento, no una búsqueda exhaustiva):
 - Los 15 s y 20 s dejan margen frente al timeout de 30 s del cliente: un pedido admitido conserva al menos 10 a 15 s para subir y extraer.
-- Con 1 hilo por réplica, la extracción se serializa; 8 pedidos en vuelo alcanzan para solapar la subida de unos con la extracción de otros. Cota de memoria estimada por réplica: 8 pedidos × 8,9 MB × unas 3 copias ≈ 210 MB, dentro del tope de 1 GiB.
+- Con 1 hilo por réplica, la extracción se serializa; 8 pedidos en vuelo alcanzan para solapar la subida de unos con la extracción de otros.
+- **Cota de memoria por réplica, medida con el tamaño máximo** (issue #36). La cota original se estimó con el PDF de 8,9 MB y «unas 3 copias» (≈ 210 MB), lo que subestimaba el peor caso: un pedido de 50 MB. Como `THREAD_POOL_SIZE=1`, solo una extracción corre a la vez, así que el consumo es `base + cupos × MAX_UPLOAD_SIZE + 1 × costo de MuPDF`. Con 8 pedidos de 48,3 MiB en paralelo contra una réplica, `docker stats` marca un pico de **477,9 MiB** sobre el tope de 1 GiB (47 %); antes de quitar las copias del cuerpo eran **816,5 MiB** (80 %). Los 8 cupos y los 50 MB se sostienen: no hizo falta bajar ninguno de los dos. Reproducible con `tests/stress/memoria_multipart.py`.
 - Se probó **un único valor (8)**, sin afinar.
 
 **Experimento A contra C** (Vegeta, 50 req/s durante 30 s):

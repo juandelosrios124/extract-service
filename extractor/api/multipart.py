@@ -1,7 +1,7 @@
 """Parseo mínimo de multipart/form-data sobre un cuerpo ya leído en memoria."""
 
 import re
-from typing import Optional
+from typing import Optional, Union
 
 MULTIPART_FILE_FIELD = "file"
 
@@ -11,8 +11,14 @@ _FIELD_NAME = re.compile(
 )
 
 
-def file_from_multipart(body: bytes, content_type: str) -> Optional[bytes]:
-    """Devuelve el contenido del campo ``file`` o None si no está."""
+def file_from_multipart(
+    body: Union[bytes, bytearray], content_type: str
+) -> Optional[memoryview]:
+    """Devuelve una vista del campo ``file`` sobre ``body``, o None si no está.
+
+    Es un ``memoryview`` y no una copia: con cuerpos de decenas de MB, copiar
+    el campo duplicaba el pedido en memoria (issue #36).
+    """
     boundary = _boundary_from(content_type)
     if boundary is None:
         return None
@@ -31,7 +37,7 @@ def file_from_multipart(body: bytes, content_type: str) -> Optional[bytes]:
         if data_end == -1:
             return None
         if _field_name(body[position:headers_end]) == MULTIPART_FILE_FIELD:
-            return body[data_start:data_end]
+            return memoryview(body)[data_start:data_end]
         position = data_end + 2
     return None
 
@@ -43,6 +49,6 @@ def _boundary_from(content_type: str) -> Optional[bytes]:
     return (match.group(1) or match.group(2)).encode("latin-1")
 
 
-def _field_name(headers: bytes) -> Optional[str]:
+def _field_name(headers: Union[bytes, bytearray]) -> Optional[str]:
     match = _FIELD_NAME.search(headers.decode("latin-1"))
     return match.group(1) if match else None
