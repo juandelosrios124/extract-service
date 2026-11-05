@@ -6,6 +6,7 @@ Knows nothing about HTTP.
 
 import logging
 from dataclasses import dataclass
+from typing import Union
 
 import pymupdf
 
@@ -20,7 +21,7 @@ class PdfExtraction:
     page_count: int
 
 
-def extract_pdf_content(pdf_bytes: bytes) -> PdfExtraction:
+def extract_pdf_content(pdf_bytes: Union[bytes, bytearray, memoryview]) -> PdfExtraction:
     """Extract text and page count from PDF bytes.
 
     Raises:

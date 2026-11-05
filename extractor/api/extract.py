@@ -110,12 +110,17 @@ async def _extract(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="El contenido del archivo no es un PDF válido",
         )
+    finally:
+        # El PDF ya se extrajo: soltar la vista y el cuerpo ahora, en vez de
+        # retenerlos mientras se serializa la respuesta (issue #36).
+        pdf_bytes.release()
+        del body
 
     return ExtractResponse(content=extraction.content, page_count=extraction.page_count)
 
 
 def _extract_if_not_expired(
-    pdf_bytes: bytes, started_at: float, max_wait: float
+    pdf_bytes: memoryview, started_at: float, max_wait: float
 ) -> PdfExtraction:
     """Runs in a worker thread: skip the work if the request already expired in the queue."""
     if time.monotonic() - started_at > max_wait:
@@ -123,8 +128,12 @@ def _extract_if_not_expired(
     return extract_pdf_content(pdf_bytes)
 
 
-async def _read_body_within_limit(request: Request, max_size: int) -> bytes:
-    """Read the request body, aborting as soon as it exceeds ``max_size``."""
+async def _read_body_within_limit(request: Request, max_size: int) -> bytearray:
+    """Read the request body, aborting as soon as it exceeds ``max_size``.
+
+    Devuelve el ``bytearray`` tal cual: convertirlo a ``bytes`` duplicaba el
+    cuerpo en memoria (issue #36).
+    """
     body = bytearray()
     async for chunk in request.stream():
         body.extend(chunk)
@@ -133,10 +142,11 @@ async def _read_body_within_limit(request: Request, max_size: int) -> bytes:
                 status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                 detail=f"El archivo supera el tamaño máximo de {max_size} bytes",
             )
-    return bytes(body)
+    return body
 
 
-def _pdf_bytes_from(body: bytes, content_type: str) -> Optional[bytes]:
+def _pdf_bytes_from(body: bytearray, content_type: str) -> Optional[memoryview]:
+    """Vista del PDF dentro de ``body``, sin copiarlo."""
     if content_type.startswith("multipart/form-data"):
         return file_from_multipart(body, content_type)
-    return body
+    return memoryview(body)

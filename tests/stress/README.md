@@ -89,6 +89,29 @@ Vegeta registra con código `0` las solicitudes que no recibieron respuesta. El 
 las que terminaron por el timeout de cliente de las que fallaron por errores de conexión.
 Los errores concretos están en el `Error Set` del reporte completo.
 
+## Memoria con cuerpos grandes
+
+Comprueba que una réplica sostiene sus 8 cupos ocupados con pedidos cercanos a
+`MAX_UPLOAD_SIZE` sin pasarse del tope de 1 GiB (issue #36). Hay que levantar el
+stack con **una sola réplica**, porque el proxy reparte entre todas y el objetivo
+es saturar una:
+
+```bash
+EXTRACT_REPLICAS=1 docker compose up --build -d --wait
+uv run python tests/stress/memoria_multipart.py --mb 49
+```
+
+En PowerShell: `$env:EXTRACT_REPLICAS="1"; docker compose up --build -d --wait`.
+
+El script genera una sola vez un PDF grande en `pdfs_provisorios/` (ignorado por
+git), hace un pedido de calentamiento, dispara los 8 en paralelo y muestrea
+`docker stats` para quedarse con el pico del contenedor. Falla si algún pedido no
+termina en `200`.
+
+El calentamiento no es cosmético: sobre un contenedor recién arrancado el primer
+pedido tarda bastante más y arrastra a los demás por encima de `MAX_QUEUE_WAIT`,
+lo que produce `503` que no tienen nada que ver con la memoria.
+
 ## Variables de entorno
 
 Sirven para los dos scripts, salvo donde se indica.

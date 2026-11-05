@@ -75,3 +75,29 @@ def test_un_archivo_vacio_devuelve_bytes_vacios():
     body = build_multipart([("file", b"", "a.pdf")])
 
     assert file_from_multipart(body, CONTENT_TYPE) == b""
+
+
+def test_devuelve_una_vista_y_no_una_copia_del_cuerpo():
+    """Issue #36: con cuerpos de 50 MB, copiar el campo duplica el pedido en memoria."""
+    pdf = b"%PDF-1.7 " + bytes(range(256)) * 50 + b" %%EOF"
+    body = bytearray(build_multipart([("file", pdf, "a.pdf")]))
+
+    vista = file_from_multipart(body, CONTENT_TYPE)
+
+    assert isinstance(vista, memoryview)
+    assert vista == pdf
+    # Escribir en el cuerpo se ve en la vista: comparten el mismo buffer.
+    inicio = body.find(pdf)
+    body[inicio] = ord("X")
+    assert bytes(vista[:1]) == b"X"
+
+
+def test_la_vista_sobre_bytes_tambien_funciona():
+    """El parser se usa con bytearray desde extract.py, pero no exige ese tipo."""
+    pdf = b"%PDF-1.7 contenido %%EOF"
+    body = build_multipart([("file", pdf, "a.pdf")])
+
+    vista = file_from_multipart(body, CONTENT_TYPE)
+
+    assert isinstance(vista, memoryview)
+    assert vista == pdf
