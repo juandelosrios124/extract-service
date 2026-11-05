@@ -21,6 +21,7 @@ from extractor.services.consul import (
     ReplicaRegistrar,
     build_registrar,
     shared_network_ip,
+    traefik_tags,
 )
 
 
@@ -208,3 +209,118 @@ def test_si_el_registro_falla_la_app_igual_atiende():
 
     assert fake.registered == 1
     assert fake.deregistered == 0  # no se desregistra lo que nunca se registró
+
+
+# --- Tags de Traefik en el registro (issue #32) ---------------------------
+
+
+def tags_de(settings: Settings) -> dict[str, str]:
+    """Los tags como diccionario clave -> valor, para poder afirmar de a uno."""
+    return dict(tag.split("=", 1) for tag in traefik_tags(settings))
+
+
+def test_los_tags_declaran_el_router_los_middlewares_y_el_service():
+    tags = tags_de(Settings())
+
+    assert tags["traefik.enable"] == "true"
+    assert tags["traefik.http.routers.extract.rule"] == "PathPrefix(`/extract`)"
+    # Solo el entrypoint de trafico: el otro publica el dashboard.
+    assert tags["traefik.http.routers.extract.entrypoints"] == "web"
+    assert (
+        tags["traefik.http.routers.extract.middlewares"]
+        == "extract-cb,extract-retry,extract-inflight"
+    )
+    assert (
+        tags["traefik.http.services.extract.loadbalancer.serverstransport"]
+        == "extract-transport@file"
+    )
+
+
+def test_los_valores_de_los_middlewares_salen_de_settings():
+    settings = Settings(
+        TRAEFIK_CB_EXPRESSION="NetworkErrorRatio() > 0.99",
+        TRAEFIK_CB_FALLBACK="30s",
+        TRAEFIK_CB_RECOVERY="45s",
+        TRAEFIK_RETRY_ATTEMPTS=5,
+        TRAEFIK_INFLIGHT=123,
+    )
+
+    tags = tags_de(settings)
+
+    assert (
+        tags["traefik.http.middlewares.extract-cb.circuitbreaker.expression"]
+        == "NetworkErrorRatio() > 0.99"
+    )
+    assert tags["traefik.http.middlewares.extract-cb.circuitbreaker.fallbackDuration"] == "30s"
+    assert tags["traefik.http.middlewares.extract-cb.circuitbreaker.recoveryDuration"] == "45s"
+    assert tags["traefik.http.middlewares.extract-retry.retry.attempts"] == "5"
+    assert tags["traefik.http.middlewares.extract-inflight.inflightreq.amount"] == "123"
+
+
+def test_un_middleware_declarado_en_el_router_tiene_su_definicion():
+    """Si el router nombra un middleware que nadie define, Traefik ignora la ruta."""
+    tags = tags_de(Settings())
+    nombrados = tags["traefik.http.routers.extract.middlewares"].split(",")
+
+    for nombre in nombrados:
+        prefijo = f"traefik.http.middlewares.{nombre}."
+        assert any(clave.startswith(prefijo) for clave in tags), nombre
+
+
+def test_el_503_del_backpressure_no_cuenta_para_el_circuit_breaker():
+    """Decisión de la issue #32, documentada en el README.
+
+    En Traefik el rango de ``ResponseCodeRatio`` es ``[from, to)``, así que
+    ``(500, 503, 0, 600)`` cuenta 500, 501 y 502 y deja afuera el 503. El 503
+    del backpressure es la respuesta sana de una réplica llena: si abriera el
+    circuito, cuanto mejor descarta carga el servicio más probable que Traefik
+    lo corte del todo.
+    """
+    default = Settings.model_fields["TRAEFIK_CB_EXPRESSION"].default
+
+    assert "ResponseCodeRatio(500, 503, 0, 600)" in default
+    assert "ResponseCodeRatio(500, 600" not in default
+
+
+def test_el_payload_del_registro_lleva_los_tags():
+    registration = Registration(
+        service_id="abc123", address="172.20.0.3", port=8001, tags=("traefik.enable=true",)
+    )
+
+    assert registration.payload()["Tags"] == ["traefik.enable=true"]
+
+
+def test_sin_tags_el_payload_trae_la_lista_vacia():
+    payload = Registration(service_id="abc123", address="172.20.0.3", port=8001).payload()
+
+    assert payload["Tags"] == []
+
+
+def test_build_registrar_pasa_los_tags_al_registro():
+    registrar = build_registrar(
+        consul_addr="http://127.0.0.1:8500",
+        token="",
+        port=8001,
+        tags=("traefik.enable=true", "otro=1"),
+    )
+
+    assert registrar is not None
+    assert registrar.registration.tags == ("traefik.enable=true", "otro=1")
+
+
+def test_la_app_registra_la_replica_con_los_tags_de_traefik(monkeypatch):
+    """Que traefik_tags() exista no sirve si el lifespan no lo usa."""
+    recibido = {}
+
+    def fake_build_registrar(**kwargs):
+        recibido.update(kwargs)
+        return FakeRegistrar()
+
+    monkeypatch.setattr("extractor.main.build_registrar", fake_build_registrar)
+    settings = Settings(CONSUL_ENABLED=True, LOG_LEVEL="WARNING", TRAEFIK_INFLIGHT=99)
+
+    with TestClient(create_app(settings)) as client:
+        assert client.get("/health").status_code == 200
+
+    assert recibido["tags"] == traefik_tags(settings)
+    assert "traefik.http.middlewares.extract-inflight.inflightreq.amount=99" in recibido["tags"]

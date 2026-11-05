@@ -144,6 +144,46 @@ La UI está en <http://127.0.0.1:8500/ui>. El nombre del contenedor de Consul sa
 
 El token de ACL se toma de `CONSUL_HTTP_TOKEN` y viaja en el header `X-Consul-Token`; no está en el repo ni se escribe en los logs.
 
+### Publicación en Traefik
+
+El circuit breaker, el retry y el límite de concurrencia **no están en el código del servicio**: los aplica Traefik, y cada réplica los configura con los **tags que pone en su propio registro de Consul** (`traefik_tags()` en [`extractor/services/consul.py`](extractor/services/consul.py)). No se usan labels de Docker: así la configuración viaja con el registro y no con el contenedor.
+
+Traefik corre con `providers.consulcatalog` y `exposedByDefault=false`, así que sin `traefik.enable=true` la réplica queda sin publicar. Los tags que manda:
+
+| Tag | Variable | Valor por defecto |
+|---|---|---|
+| `traefik.enable=true` | — | — |
+| `...routers.extract.rule` | — | `PathPrefix(`/extract`)` |
+| `...routers.extract.entrypoints` | — | `web` (el otro entrypoint es el del dashboard) |
+| `...routers.extract.middlewares` | — | `extract-cb,extract-retry,extract-inflight` |
+| `...extract-cb.circuitbreaker.expression` | `TRAEFIK_CB_EXPRESSION` | ver abajo |
+| `...extract-cb.circuitbreaker.fallbackDuration` | `TRAEFIK_CB_FALLBACK` | `10s` |
+| `...extract-cb.circuitbreaker.recoveryDuration` | `TRAEFIK_CB_RECOVERY` | `10s` |
+| `...extract-retry.retry.attempts` | `TRAEFIK_RETRY_ATTEMPTS` | `2` |
+| `...extract-inflight.inflightreq.amount` | `TRAEFIK_INFLIGHT` | `80` |
+| `...services.extract.loadbalancer.serverstransport` | — | `extract-transport@file` |
+
+`serversTransport` es lo único que no se puede declarar por tags; lo define el provider file de infra.
+
+**Decisión: el `503` del backpressure no abre el circuito.**
+
+```
+NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 503, 0, 600) > 0.50
+```
+
+En Traefik el rango de `ResponseCodeRatio` es `[from, to)`: `from` incluido, `to` excluido. `(500, 503, ...)` cuenta entonces **500, 501 y 502, y deja afuera el 503**. El default que suele citarse, `(500, 600, ...)`, sí lo contaría.
+
+Se eligió excluirlo porque **el `503` del backpressure no es una falla de la réplica: es su respuesta sana cuando está llena** (sin cupo, o pedido vencido en la cola), y siempre lleva `Retry-After: 1`. Si contara para el breaker:
+
+- Cuanto mejor descarta carga el servicio, más probable que Traefik lo corte **del todo**. La degradación elegante se convertiría en una caída completa.
+- Las 5 réplicas descartan a la vez bajo la misma carga, así que tampoco habría aislamiento: el circuito se abriría para el servicio entero.
+- Con el circuito abierto Traefik responde `503` por su cuenta, el mismo código: el cliente no podría distinguir «estoy lleno, reintentá en 1 s» de «no te atiendo».
+
+El breaker queda entonces para fallas de verdad: errores de red (réplica caída o inalcanzable) y `500`/`502`.
+
+El `retry` de Traefik reintenta ante **error de red**, no ante un `503` de la app (sin la opción `status`, deja de reintentar en cuanto la réplica responde, cualquiera sea el código), así que no pelea con la admisión por cupos. Trae además `maxRequestBodyBytes` en 2 MiB por defecto; se comprobó que un PDF de 8,9 MB igual pasa con `200`. El `inflightreq` responde `429` al pasarse del tope y está puesto en el doble de la capacidad agregada (5 réplicas × 8 cupos) a propósito: el control primario sigue siendo la admisión por cupos de la app, que es la que está medida en el informe; el tope del borde solo acota el encolado. Es un primer valor razonado, sin afinar.
+
+
 ## Arquitectura
 
 ```mermaid

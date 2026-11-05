@@ -14,6 +14,8 @@ from dataclasses import dataclass
 from typing import Callable, Optional, Protocol
 from urllib.parse import urlsplit
 
+from extractor.config import Settings
+
 logger = logging.getLogger(__name__)
 
 # Fijados por la issue #16: el nombre con el que documents-service y el proxy
@@ -41,6 +43,8 @@ class Registration:
     address: str
     port: int
     name: str = SERVICE_NAME
+    #: Tags del catálogo. Con ellos Traefik publica el servicio (issue #32).
+    tags: tuple[str, ...] = ()
 
     def payload(self) -> dict:
         return {
@@ -48,6 +52,7 @@ class Registration:
             "Name": self.name,
             "Address": self.address,
             "Port": self.port,
+            "Tags": list(self.tags),
             "Check": {
                 # A la IP de la réplica: "localhost", visto desde Consul, es el
                 # propio contenedor de Consul.
@@ -57,6 +62,36 @@ class Registration:
                 "DeregisterCriticalServiceAfter": DEREGISTER_CRITICAL_AFTER,
             },
         }
+
+
+def traefik_tags(settings: Settings) -> tuple[str, ...]:
+    """Tags con los que Traefik publica este servicio (issue #32).
+
+    Traefik corre con ``providers.consulcatalog`` y ``exposedByDefault=false``,
+    así que sin ``traefik.enable=true`` la réplica no se publica. El router, los
+    tres middlewares y el service se declaran acá y no con labels de Docker, de
+    modo que la configuración viaja con el registro de cada réplica.
+
+    ``serversTransport`` es lo único que no se puede declarar por tags: lo
+    define el provider file de infra como ``extract-transport``.
+    """
+    router = f"traefik.http.routers.{SERVICE_NAME}"
+    middleware = f"traefik.http.middlewares.{SERVICE_NAME}"
+    service = f"traefik.http.services.{SERVICE_NAME}"
+    return (
+        "traefik.enable=true",
+        f"{router}.rule=PathPrefix(`/{SERVICE_NAME}`)",
+        # Solo el entrypoint de tráfico: el otro es el del dashboard.
+        f"{router}.entrypoints=web",
+        f"{router}.middlewares="
+        f"{SERVICE_NAME}-cb,{SERVICE_NAME}-retry,{SERVICE_NAME}-inflight",
+        f"{middleware}-cb.circuitbreaker.expression={settings.TRAEFIK_CB_EXPRESSION}",
+        f"{middleware}-cb.circuitbreaker.fallbackDuration={settings.TRAEFIK_CB_FALLBACK}",
+        f"{middleware}-cb.circuitbreaker.recoveryDuration={settings.TRAEFIK_CB_RECOVERY}",
+        f"{middleware}-retry.retry.attempts={settings.TRAEFIK_RETRY_ATTEMPTS}",
+        f"{middleware}-inflight.inflightreq.amount={settings.TRAEFIK_INFLIGHT}",
+        f"{service}.loadbalancer.serverstransport=extract-transport@file",
+    )
 
 
 def shared_network_ip(consul_addr: str) -> str:
@@ -171,6 +206,7 @@ def build_registrar(
     token: str,
     port: int,
     service_id: Optional[str] = None,
+    tags: tuple[str, ...] = (),
 ) -> Optional[ReplicaRegistrar]:
     """Arma el registrador de esta réplica, o ``None`` si no se pudo.
 
@@ -187,5 +223,5 @@ def build_registrar(
         return None
     return ReplicaRegistrar(
         ConsulAgent(consul_addr, token=token),
-        Registration(service_id=service_id, address=address, port=port),
+        Registration(service_id=service_id, address=address, port=port, tags=tags),
     )
