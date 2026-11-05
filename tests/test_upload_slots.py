@@ -40,7 +40,9 @@ def test_sin_cupo_el_segundo_pedido_recibe_503(slow_extraction):
     )
     with TestClient(create_app(settings)) as client:
         first = {}
-        worker = threading.Thread(target=lambda: first.update(response=post_pdf(client, make_pdf())))
+        worker = threading.Thread(
+            target=lambda: first.update(response=post_pdf(client, make_pdf()))
+        )
         worker.start()
         time.sleep(0.1)  # el primero ya tiene el cupo y sigue extrayendo
         second = post_pdf(client, make_pdf())
@@ -57,7 +59,9 @@ def test_si_el_cupo_se_libera_a_tiempo_el_pedido_espera_y_se_atiende(slow_extrac
     )
     with TestClient(create_app(settings)) as client:
         first = {}
-        worker = threading.Thread(target=lambda: first.update(response=post_pdf(client, make_pdf())))
+        worker = threading.Thread(
+            target=lambda: first.update(response=post_pdf(client, make_pdf()))
+        )
         worker.start()
         time.sleep(0.1)
         second = post_pdf(client, make_pdf("Segundo"))
@@ -80,7 +84,9 @@ def test_sin_limite_configurado_no_se_rechaza_nada(slow_extraction):
     with TestClient(create_app(settings)) as client:
         results = []
         workers = [
-            threading.Thread(target=lambda: results.append(post_pdf(client, make_pdf()).status_code))
+            threading.Thread(
+                target=lambda: results.append(post_pdf(client, make_pdf()).status_code)
+            )
             for _ in range(2)
         ]
         [w.start() for w in workers]

@@ -2,7 +2,8 @@
 name = "extract-service"
 version = "0.1.0"
 description = "Microservicio sin estado de extracción de texto de PDFs"
-requires-python = ">=3.11"
+# Fijado a 3.11: es la version de la imagen base del Dockerfile.
+requires-python = ">=3.11,<3.12"
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.32.0",
@@ -14,6 +15,7 @@ dependencies = [
 dev = [
     "httpx2>=2.13.1",
     "pytest>=8.3.0",
+    "ruff>=0.17.4",
 ]
 
 [tool.uv]
@@ -22,3 +24,12 @@ package = false
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+# E: errores de pycodestyle, F: pyflakes (imports y nombres sin usar),
+# I: orden de los imports. No se habilitan reglas de estilo opinadas
+# (UP, B, SIM) para no reescribir codigo que ya funciona.
+select = ["E", "F", "I"]

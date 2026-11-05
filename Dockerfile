@@ -1,14 +1,14 @@
 # ──────────────────────────────────────────
 # Etapa 1: builder — instala dependencias
 # ──────────────────────────────────────────
-FROM python:3.11-slim AS builder
+FROM python:3.11-slim@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79 AS builder
 
 WORKDIR /service
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_COMPILE_BYTECODE=1
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.10.11 /uv /usr/local/bin/uv
 
 COPY pyproject.toml uv.lock ./
 
@@ -18,7 +18,7 @@ RUN uv sync --frozen --no-dev
 # ──────────────────────────────────────────
 # Etapa 2: production — imagen final mínima
 # ──────────────────────────────────────────
-FROM python:3.11-slim AS production
+FROM python:3.11-slim@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79 AS production
 
 WORKDIR /service
 
