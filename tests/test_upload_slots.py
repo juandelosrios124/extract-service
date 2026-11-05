@@ -76,7 +76,8 @@ def test_el_cupo_se_libera_aunque_el_pedido_falle():
 
 
 def test_sin_limite_configurado_no_se_rechaza_nada(slow_extraction):
-    with TestClient(create_app(Settings(THREAD_POOL_SIZE=2, MAX_QUEUE_WAIT=5))) as client:
+    settings = Settings(THREAD_POOL_SIZE=2, MAX_QUEUE_WAIT=5, MAX_CONCURRENT_UPLOADS=0)
+    with TestClient(create_app(settings)) as client:
         results = []
         workers = [
             threading.Thread(target=lambda: results.append(post_pdf(client, make_pdf()).status_code))

@@ -10,6 +10,9 @@ ENV_VARS = (
     "PORT",
     "MAX_UPLOAD_SIZE",
     "THREAD_POOL_SIZE",
+    "MAX_QUEUE_WAIT",
+    "MAX_CONCURRENT_UPLOADS",
+    "UPLOAD_SLOT_TIMEOUT",
     "LOG_LEVEL",
     "CONSUL_ENABLED",
     "CONSUL_HTTP_ADDR",
@@ -29,8 +32,22 @@ def test_settings_have_sensible_defaults():
     assert settings.HOST == "0.0.0.0"
     assert settings.PORT == 8001
     assert settings.MAX_UPLOAD_SIZE == 50 * 1024 * 1024
-    assert settings.THREAD_POOL_SIZE == 4
     assert settings.LOG_LEVEL == "INFO"
+
+
+def test_los_defaults_son_los_valores_de_produccion():
+    """Sin variables de entorno el servicio arranca protegido, no sin límites.
+
+    Regresión de la issue #27: las variables quedaron en el proxy y nunca
+    llegaron a las réplicas; el default de 0 dejó la admisión por cupos
+    apagada un mes sin que se notara (issue #31).
+    """
+    settings = Settings()
+
+    assert settings.THREAD_POOL_SIZE == 1
+    assert settings.MAX_CONCURRENT_UPLOADS == 8
+    assert settings.UPLOAD_SLOT_TIMEOUT == 15.0
+    assert settings.MAX_QUEUE_WAIT == 20.0
 
 
 def test_settings_are_read_from_environment(monkeypatch):
