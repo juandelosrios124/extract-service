@@ -318,7 +318,7 @@ Los 4 PDFs oficiales están en `tests/stress/pdfs/` y los scripts de la cátedra
 
 ```bash
 # Vegeta: 50 req/s durante 30 s, timeout de 30 s (por mired, la red de Traefik)
-docker run --rm --network mired -v "$PWD/tests/stress:/stress" --entrypoint sh peterevans/vegeta -c "vegeta attack -targets=/stress/profesor/test_carga.txt -rate=50 -duration=30s -timeout=30s | vegeta report"
+docker run --rm --network mired -v "$PWD/tests/stress:/stress" --entrypoint sh peterevans/vegeta:6.9.1-vegeta12.8.4 -c "vegeta attack -targets=/stress/profesor/test_carga.txt -rate=50 -duration=30s -timeout=30s | vegeta report"
 
 # k6: spike de 100 usuarios virtuales
 k6 run tests/stress/profesor/spike_tests.js
@@ -329,7 +329,16 @@ En PowerShell, reemplazar `$PWD` por `${PWD}`. Recomendaciones para medir:
 - Recrear las réplicas y esperar ~60 s antes de cada corrida.
 - Una sola corrida varía unos 13 puntos de éxito: comparar promedios de varias corridas alternadas.
 
-Los scripts `tests/stress/k6/spike.js` y `tests/stress/vegeta/attack.sh` envían los PDFs como `multipart/form-data`. Los resultados se guardan en `tests/stress/results/` (no se versiona). `tests/stress/generate_pdfs.py` genera un set sintético para diagnóstico.
+Los scripts `tests/stress/k6/spike.js` y `tests/stress/vegeta/attack.sh` envían los PDFs como `multipart/form-data`. Los resultados se guardan en `tests/stress/results/` (no se versiona, salvo los resúmenes de la #38). `tests/stress/generate_pdfs.py` genera un set sintético para diagnóstico.
+
+**Matriz del informe (issue #38).** La comparación A, C y C+CB de §5.3 se corre con un solo script, que usa la imagen publicada (`sha-ec5b762`), los dos scripts de la cátedra en contenedores con versión fija dentro de `mired` y 3 rondas alternadas, y después arma la tabla con media, mínimo y máximo:
+
+```bash
+tests/stress/bench/run-38.sh                                                    # 18 corridas, ~45 min
+uv run python tests/stress/bench/resumen_38.py tests/stress/results/38/$(date +%Y-%m-%d)
+```
+
+Necesita infra y documents levantados (`make up RELEASE=1 ...` en infra). Las variables, el desglose de errores por motivo y la corrida de `POST /documents` están en [`tests/stress/README.md`](tests/stress/README.md#matriz-de-la-issue-38-a-c-y-ccb).
 
 ## Estructura
 

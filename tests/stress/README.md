@@ -32,7 +32,8 @@ Antes de medir, comprobar que Traefik ya ve las 5 réplicas: en
 con 5 servidores.
 
 Los comandos de abajo se corren desde la raíz del repo. Los resultados quedan en
-`tests/stress/results/`, que no se commitea.
+`tests/stress/results/`, que no se commitea (salvo los reportes y resúmenes de la #38,
+ver `results/.gitignore`).
 
 ## Spike con k6
 
@@ -125,6 +126,75 @@ termina en `200`.
 El calentamiento no es cosmético: sobre un contenedor recién arrancado el primer
 pedido tarda bastante más y arrastra a los demás por encima de `MAX_QUEUE_WAIT`,
 lo que produce `503` que no tienen nada que ver con la memoria.
+
+## Matriz de la issue #38 (A, C y C+CB)
+
+`bench/run-38.sh` corre la comparación del informe (§5.3) con el Vegeta y el k6
+**de la cátedra** (`profesor/`), siempre con la imagen publicada (por defecto
+`sha-ec5b762`) y con versiones fijas de las herramientas
+(`peterevans/vegeta:6.9.1-vegeta12.8.4` y `grafana/k6:2.2.0`, con digest). Las dos
+herramientas corren en un contenedor dentro de `mired` y entran por
+`http://traefik`, sin pasar por el puerto del host.
+
+| Config | `MAX_CONCURRENT_UPLOADS` | `MAX_QUEUE_WAIT` | CB de Traefik |
+|---|---|---|---|
+| A | `0` (sin cupos) | `1000` | `NetworkErrorRatio() > 1.0`: presente, nunca abre |
+| C | `8` | `15` | `NetworkErrorRatio() > 1.0` |
+| C+CB | `8` | `15` | el de producción |
+
+Lo demás es igual en las tres y es parte del sistema: inflight 80 (`429`), retry
+2, `responseHeaderTimeout` 25 s (`504`), `UPLOAD_SLOT_TIMEOUT` 5 s y
+`EXTRACTION_DEADLINE` 8 s. El literal del CB tiene que ser flotante: con `> 1`,
+Traefik v3.7 rechaza la expresión (`expected int, got int`) y deja a extract sin
+router (todo `404`).
+
+Con infra y documents levantados (`make wait-routes` exige las dos rutas), desde la
+raíz del repo:
+
+```bash
+# Matriz completa: 3 rondas x 2 herramientas x 3 configs = 18 corridas (~45 min)
+tests/stress/bench/run-38.sh
+
+# Tabla por configuración y herramienta (media, mínimo y máximo) y desglose
+uv run python tests/stress/bench/resumen_38.py tests/stress/results/38/$(date +%Y-%m-%d)
+
+# Prueba corta para validar los scripts
+STAMP=prueba ROUNDS=1 TOOLS=vegeta VEGETA_DURATION=10s SETTLE=20 tests/stress/bench/run-38.sh
+```
+
+Cada corrida recrea extract solo con variables en el comando (nunca toca el
+`.env`), espera a que Traefik rutee las réplicas **nuevas** y a que las 5 estén
+`passing` en Consul con los mismos tags, deja 60 s de reposo y guarda en
+`results/38/<fecha>/<n>-<config>-<herramienta>/` el reporte, los resultados
+crudos, `make images`, las variables, `/metrics` de Traefik antes y después, el
+access log de Traefik y el log de extract de la ventana, y `docker stats`.
+`resumen_38.py` separa los no-`200` por motivo y concilia el cliente, el access
+log, `/metrics` y el log de extract:
+
+| Motivo | Cómo se reconoce |
+|---|---|
+| `503` cupo / cola / deadline | `OriginStatus` 503; body de 66 B (cupo) o 70 B (cola); el deadline deja un `WARNING` en extract |
+| `503` del CB | `OriginStatus` 0, sin `ServiceURL`; solo en `traefik_entrypoint_requests_total` |
+| `429` inflight | `OriginStatus` 0; solo en la métrica del entrypoint |
+| `504` de Traefik | `OriginStatus` 504, `OriginDuration` de ~25 s |
+| `404` sin ruta | `OriginStatus` 0: Traefik se quedó sin réplicas `passing` |
+| código 0 | solo lo ve el cliente (timeout de 30 s o error de conexión) |
+
+Variables: `ROUNDS` (3), `CONFIGS` (`A C C+CB`), `TOOLS` (`vegeta k6`),
+`VEGETA_RATE` (50), `VEGETA_DURATION` (`30s`), `CLIENT_TIMEOUT` (`30s`, también
+para k6), `SETTLE` (60), `FIRST_RUN` (1, para retomar una matriz cortada), `IMAGE_TAG` (`sha-ec5b762`), `STAMP` (la fecha) e
+`INFRA_DIR` (`../pdf_extractext-infra`).
+
+**Camino real.** `bench/run-38-documents.sh` manda el mismo perfil de Vegeta a
+`POST /documents` con extract en C+CB. Cada pedido lleva un PDF con checksum
+distinto (si no, documents responde `200` duplicate sin llamar a extract), y
+documents tiene que estar sobre una base de prueba:
+
+```bash
+MONGO_DB_NAME=documents_bench make up RELEASE=1 EXTRACT_IMAGE_TAG=sha-ec5b762 DOCUMENTS_IMAGE_TAG=sha-3ef65f2  # en infra
+uv run python tests/stress/bench/pdfs_unicos.py --cantidad 1600 --verificar  # ~5,5 GB, ignorado por git
+STAMP=2026-11-06 tests/stress/bench/run-38-documents.sh
+```
 
 ## Variables de entorno
 
