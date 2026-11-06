@@ -1,4 +1,4 @@
-# extract-service (v1.1)
+# extract-service
 
 Microservicio sin estado que extrae el texto de un PDF. Trabajo práctico de Desarrollo de Software (UTN Facultad Regional San Rafael): test de carga, estrés y optimización.
 
