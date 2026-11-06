@@ -259,6 +259,56 @@ def test_los_valores_de_los_middlewares_salen_de_settings():
     assert tags["traefik.http.middlewares.extract-inflight.inflightreq.amount"] == "123"
 
 
+INFLIGHT_SOURCE = (
+    "traefik.http.middlewares.extract-inflight.inflightreq.sourcecriterion.requestheadername"
+)
+
+
+def test_el_inflight_es_un_unico_tope_por_defecto():
+    """Issue #55: sin sourceCriterion, Traefik agrupa por Host y cada Host
+    tiene su propio tope. X-Forwarded-Server lo reescribe Traefik con su
+    hostname en todos los pedidos: un solo contador."""
+    tags = tags_de(Settings())
+
+    assert tags[INFLIGHT_SOURCE] == "X-Forwarded-Server"
+
+
+def test_el_header_del_inflight_sale_de_settings():
+    tags = tags_de(Settings(TRAEFIK_INFLIGHT_SOURCE_HEADER="X-Otro"))
+
+    assert tags[INFLIGHT_SOURCE] == "X-Otro"
+
+
+def test_sin_header_el_inflight_queda_con_el_default_de_traefik():
+    tags = tags_de(Settings(TRAEFIK_INFLIGHT_SOURCE_HEADER=""))
+
+    assert not any("sourcecriterion" in clave for clave in tags)
+
+
+@pytest.mark.parametrize("valor", ["X-Forwarded-Server,otro", "a=b", "con espacio"])
+def test_el_header_del_inflight_no_acepta_valores_que_rompan_el_tag(valor):
+    with pytest.raises(ValueError):
+        Settings(TRAEFIK_INFLIGHT_SOURCE_HEADER=valor)
+
+
+@pytest.mark.parametrize(
+    "opcion", ["status", "retrynonidempotentmethod", "maxrequestbodybytes", "timeout"]
+)
+def test_el_retry_solo_reintenta_errores_de_red(opcion):
+    """Decisión de la issue #55. Sin ``status``, el retry de Traefik v3.7 solo
+    actúa ante un error de red antes de mandar el pedido, también en POST, y no
+    guarda el body en memoria. Con ``status`` reintentaría respuestas (el 503
+    del backpressure, o un 504 que rompe el presupuesto de timeouts), y
+    ``retryNonIdempotentMethod`` y ``maxRequestBodyBytes`` solo tienen efecto
+    junto con ``status``."""
+    prefijo = "traefik.http.middlewares.extract-retry.retry."
+
+    retry = {clave for clave in tags_de(Settings()) if clave.startswith(prefijo)}
+
+    assert retry == {prefijo + "attempts"}
+    assert prefijo + opcion not in retry
+
+
 def test_un_middleware_declarado_en_el_router_tiene_su_definicion():
     """Si el router nombra un middleware que nadie define, Traefik ignora la ruta."""
     tags = tags_de(Settings())
