@@ -1,6 +1,6 @@
 # Informe técnico: concurrencia, backpressure y límites de CPU en el microservicio `/extract`
 
-Versión v1.1 · Desarrollo de Software · UTN Facultad Regional San Rafael
+Mediciones de la issue #38 (imagen `sha-ec5b762`, noviembre de 2026) · Desarrollo de Software · UTN Facultad Regional San Rafael
 Autores: Juan Ignacio De Los Rios, Santino Olivetti
 
 > Convenciones: lo marcado como **hipótesis** no fue aislado con un experimento propio.
@@ -54,27 +54,28 @@ La fila «Imagen» registra qué binario se midió (ver §4): `ghcr.io/juandelos
 
 ```mermaid
 flowchart LR
-  C[Cliente: k6 / Vegeta] --> P[Caddy: round robin]
-  P --> R1[Réplica 1: 1,0 CPU]
-  P --> R2[Réplica 2: 1,0 CPU]
-  P --> R5[Réplica 5: 1,0 CPU]
+  C[Cliente: k6 / Vegeta / documents] --> T[Traefik: máx. 80 en vuelo, CB, espera de headers 25 s]
+  K[(Consul: réplicas passing y sus tags)] -.-> T
+  T --> R1[Réplica 1: 1,0 CPU]
+  T --> R2[Réplica 2: 1,0 CPU]
+  T --> R5[Réplica 5: 1,0 CPU]
   subgraph Réplica
-    A[Admisión: máx. 8 pedidos, espera 15 s] --> L[Lee el cuerpo en memoria]
-    L --> Q[Descarta si esperó más de 20 s]
-    Q --> W[Pool de 1 hilo] --> X[PyMuPDF]
+    A[Admisión: máx. 8 pedidos, espera 5 s] --> L[Lee el cuerpo en memoria]
+    L --> Q[Descarta si esperó más de 15 s]
+    Q --> W[Pool de 1 hilo] --> X[PyMuPDF, deadline de 8 s]
   end
 ```
 
-Cada réplica es un proceso de FastAPI sin estado. El orden de un pedido es:
+Cada réplica es un proceso de FastAPI sin estado que se registra en Consul con su readiness como check y con los tags que le dicen a Traefik cómo publicarla (router, middlewares y service). Traefik solo rutea a las réplicas `passing` y, antes de llegar a una, aplica tres middlewares: el circuit breaker, el retry (que no actúa sobre `POST`, ver §5.3) y el límite de 80 pedidos en vuelo, que responde `429`. Si una réplica no manda los headers de respuesta en 25 s, Traefik responde `504`. El orden de un pedido dentro de la réplica es:
 
 1. **Admisión:** toma un cupo (máximo `MAX_CONCURRENT_UPLOADS`). Si no hay, espera hasta `UPLOAD_SLOT_TIMEOUT` **sin leer el cuerpo** y después responde `503`.
 2. **Lectura en memoria** con límite de tamaño en streaming (`MAX_UPLOAD_SIZE`, 50 MiB).
-3. **Extracción** en un pool de hilos separado del event loop. Antes de empezar se verifica que el pedido no haya vencido (`MAX_QUEUE_WAIT`).
-4. Respuesta `200`, o `400`, `413` o `503` según el caso.
+3. **Extracción** en un pool de hilos separado del event loop. Antes de empezar se verifica que el pedido no haya vencido (`MAX_QUEUE_WAIT`) y que no supere `MAX_PAGES`; durante la extracción, entre página y página, que no se haya pasado el `EXTRACTION_DEADLINE`.
+4. Respuesta `200`, o `400`, `413`, `422` o `503` según el caso.
 
 | Decisión | Alternativas | Motivo |
 |---|---|---|
-| 5 réplicas sin estado detrás de Caddy | Traefik, nginx | Caddy se configura por variables de entorno y reparte entre las réplicas resolviendo el DNS de Docker |
+| 5 réplicas sin estado detrás de Traefik | Caddy (el proxy hasta `v1.0`), nginx | Traefik descubre las réplicas en el catálogo de Consul y toma la configuración de los tags de cada una (issues #32 y #33): no hay archivo del proxy que mantener al escalar, y el inflight, el CB y los timeouts se aplican en el borde |
 | PyMuPDF, todo en memoria | Disco, `pypdfium2`, `pymupdf4llm` | Ver 5.1 |
 | `THREAD_POOL_SIZE=1` | 4 hilos, pool de procesos | Ver 5.2 |
 | Parser de multipart propio (`bytes.find`) | Parser de Starlette | El de Starlette vuelca a disco las subidas de más de 1 MB; la consigna pide evitarlo |
@@ -257,13 +258,14 @@ Fuente: `tests/stress/results/38/2026-11-06/resumen.md` (desglose por corrida en
 
 ## 6. Cuello de botella identificado
 
-El cuello de botella es **la CPU disponible por réplica frente a una carga CPU-bound, agravado por la admisión sin límites**:
+La capacidad la pone **la CPU frente a una carga CPU-bound**; con la configuración actual, lo que **decide cuántos pedidos se atienden** es el tope de pedidos en vuelo de Traefik:
 
-1. Cada réplica dispone de un núcleo equivalente (1,0 CPU) y la extracción lo consume por completo. La configuración inicial lo sobresuscribía con 4 hilos.
-2. Las 5 réplicas suman una cuota de 5 CPUs sobre 4 núcleos físicos que también ejecutan el proxy y el generador de carga, de modo que la capacidad total está acotada por el equipo.
-3. Sin admisión, el servicio acepta más trabajo del que puede completar en el timeout del cliente y desperdicia capacidad en pedidos que expiran.
+1. Cada réplica dispone de un núcleo equivalente (1,0 CPU) y la extracción lo consume por completo mientras corre. La configuración inicial lo sobresuscribía con 4 hilos (§5.2).
+2. Las 5 réplicas, Traefik, documents y Mongo suman topes de 7,0 CPU sobre 4 núcleos, que además ejecutan Consul y el generador de carga: la capacidad total está acotada por el equipo. En la #38 cada réplica promedió un 51,5 % de CPU, con picos del 100 %. Como no se registró la CPU total de la máquina (§8), que el host esté saturado es una **hipótesis**.
+3. **En v1.0**, sin ningún límite delante, el servicio aceptaba más trabajo del que podía completar en el timeout del cliente y desperdiciaba capacidad en pedidos que expiraban (465 timeouts en A). **En la #38**, el inflight de Traefik (80) corta antes: alrededor del 21 % de los pedidos de Vegeta recibe `429` y ninguno llega a vencer (0 timeouts, 0 `504`, 0 `503` por cola). Los cupos de extract (5 × 8 = 40) quedan detrás de ese límite y casi no actúan (13 rechazos en 18 corridas).
+4. **En el camino real** (`POST /documents`) el primer límite es la admisión de documents (una réplica con 4 cupos): 904 de 1.500 pedidos se rechazan ahí, antes de llamar a extract.
 
-No son el cuello de botella: la librería de extracción (las alternativas no superan el umbral ni mejoran de forma sostenida), el parser de multipart para el test de la cátedra (usa cuerpo binario) ni el disco.
+No son el cuello de botella: la librería de extracción (las alternativas no superan el umbral ni mejoran de forma sostenida), el parser de multipart para el test de la cátedra (usa cuerpo binario), el disco ni Traefik con Vegeta (16,7 % de CPU de media, con un tope de 50 %). Con k6, Traefik sí llega a su tope de 0,5 CPU en el 27 % de las muestras, por el bucle de `429` del script (§8).
 
 ## 7. Resultados finales y comparación con la cátedra
 
@@ -313,13 +315,22 @@ Los 596 `201` corresponden, uno a uno por `X-Request-ID`, a 596 `/extract` inter
 
 ## 9. Conclusiones y trabajo futuro
 
-Tres decisiones medidas explican el resultado: conservar PyMuPDF (la alternativa no justificó el riesgo), usar **un worker por núcleo asignado** y **proteger a cada réplica con admisión por cupos** en lugar de dejar que los pedidos envejezcan. En el perfil de la cátedra, la configuración final supera la referencia en éxito, throughput y timeouts.
+Tres decisiones medidas explican el resultado:
+- conservar PyMuPDF, porque la alternativa no justificó el riesgo;
+- usar **un worker por núcleo asignado**;
+- **no dejar que los pedidos envejezcan**, con límites en dos capas: los 80 pedidos en vuelo de Traefik en el borde, y los cupos, el descarte de vencidos y el deadline en cada réplica.
+
+La re-medición de la #38 muestra que, con el perfil de la cátedra, **la capa que actúa es la de Traefik**: todos los rechazos son `429` y no hay timeouts. Los cupos de extract quedan como segunda línea: casi no rechazan, pero siguen acotando la memoria de cada réplica (#36). El circuit breaker no llegó a ejercitarse. La configuración final supera la referencia de la cátedra en Vegeta en éxito, throughput y timeouts. En k6 entrega la misma cantidad de respuestas `200` por segundo, con un P95 menor.
 
 Trabajo futuro:
-- Aislar con A/B propios el efecto de `THREAD_POOL_SIZE` y afinar `MAX_CONCURRENT_UPLOADS` y `UPLOAD_SLOT_TIMEOUT`.
-- Evaluar un pool de procesos y menos de 5 réplicas cuando el equipo tiene menos de 5 núcleos.
+- Aislar el efecto de los cupos de extract midiendo A contra C con un inflight mayor o sin él, y afinar `MAX_CONCURRENT_UPLOADS` y `UPLOAD_SLOT_TIMEOUT`.
+- Más corridas por configuración y el orden aleatorizado, para separar la configuración de la posición en el bloque (§5.3).
+- Una carga que produzca `502`/`504`, para evaluar el circuit breaker.
+- Decidir si el retry de Traefik tiene que aplicar a `POST` (hoy no actúa) y, si es así, activarlo con `retryNonIdempotentMethod`.
+- Revisar la admisión de documents (réplicas o cupos), que es el primer límite del camino real.
+- Aislar con A/B propios el efecto de `THREAD_POOL_SIZE` y evaluar un pool de procesos y menos de 5 réplicas cuando el equipo tiene menos de 5 núcleos.
 - Devolver `content` en Markdown liviano, midiendo su costo.
-- Repetir las mediciones en un equipo con más memoria y con el generador de carga separado.
+- Repetir las mediciones con el generador de carga en otra máquina y registrando la CPU total del host.
 
 ## 10. Reproducibilidad
 
