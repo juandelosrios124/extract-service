@@ -13,7 +13,6 @@ Para levantar el sistema completo en orden (infra, extract y documents), lo reco
 ```bash
 git clone https://github.com/juandelosrios124/extract-service.git
 cd extract-service
-git checkout v1.1
 
 # Red externa compartida con Consul, Traefik y documents-service: una sola vez
 # por maquina. Si ya existe (la pudo crear otro repo), ignorar el error.
@@ -22,7 +21,7 @@ docker network create mired
 docker compose up --build -d --wait
 ```
 
-Así se compila la imagen en la máquina (desarrollo, lo mismo que hace `make up` de infra). Para correr la imagen que publica la CI, sin compilar, ver [Imagen y releases](#imagen-y-releases-12-factor-v).
+Así se compila la imagen en la máquina (desarrollo, lo mismo que hace `make up` de infra). Para correr la imagen que publica la CI, sin compilar, ver [Imagen y releases](#imagen-y-releases-12-factor-v). La versión que se midió en el informe es la imagen `sha-ec5b762` (`EXTRACT_IMAGE_TAG=sha-ec5b762 docker compose -f docker-compose.yml up -d --wait`); no hay tag de git `v1.1`.
 
 Levanta **5 réplicas** (1,0 CPU y 1 GiB cada una). Este compose **no publica ningún puerto**: el punto de entrada es **Traefik**, que vive en el repo de [infra](https://github.com/juandelosrios124/pdf_extractext-infra) y descubre las réplicas por el catálogo de Consul. Hay que levantarlo ahí:
 
