@@ -2,7 +2,8 @@
 # salvo los de la issue #38: los reportes de texto, los resúmenes y lo que
 # identifica cada corrida (variables, imagen, horas, /metrics de Traefik).
 # Los crudos (.bin de Vegeta, k6-raw.json, un pedido por línea, access log de
-# Traefik y logs de extract y documents) quedan solo en la máquina: ~1,5 GB.
+# Traefik y logs de extract y documents; ~1,5 GB) no se versionan: los de la #38
+# están comprimidos fuera del repo (ver docs/bitacora-linea-base.md).
 *
 !.gitignore
 !38/

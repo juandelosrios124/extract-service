@@ -148,6 +148,13 @@ en las 19 corridas; documents `sha-3ef65f2`
 (`sha256:5e94251bdd5f482624e4f2bf1b1f0414ce0b81dc9ccc4730a1818cc9b449e560`).
 Resultados en `tests/stress/results/38/2026-11-06/` (resumen en `resumen.md`).
 
+**Datos crudos.** Lo que no se versiona (`.bin` de Vegeta, `k6-raw.json`, un pedido por línea,
+access log de Traefik, logs de extract y documents, ~1,5 GB) y la corrida descartada están
+comprimidos fuera del repo, junto con los archivos versionados, en `extract-service-38-crudos-2026-11-06.tar.zst`
+(21 MB, 378 archivos, sha256
+`d059b51ef8e2f7c552b750ab37e1c4bcc64ba655db3f75c556c72810c3dd3655`), en la máquina de
+medición. Para revisarlos: `tar -I zstd -xf extract-service-38-crudos-2026-11-06.tar.zst`.
+
 ### Entorno
 
 - La misma notebook (Lenovo 81W3, Ryzen 3 4300U, 4 núcleos y 4 hilos), ahora con CachyOS:
@@ -182,7 +189,7 @@ Resultados en `tests/stress/results/38/2026-11-06/` (resumen en `resumen.md`).
 ### Corridas cortas de validación
 
 Vegeta 10 s por configuración (reposo de 20 s) y una de k6 en C, en
-`tests/stress/results/38/prueba-2026-11-06/` (no versionadas). Éxito: A 83,00 %, C 84,00 %,
+`tests/stress/results/38/prueba-2026-11-06/` (no versionadas y borradas después: solo validaban los scripts). Éxito: A 83,00 %, C 84,00 %,
 C+CB 85,20 %; único no-`200`: `429`. k6: 976 `200`, 13.876 `429` y 3 `503` por cupo, iguales
 en las cuatro fuentes. Ahí apareció el bucle de `429` de k6 (modelo cerrado sin pausas, 100
 usuarios contra un tope de 80).
@@ -216,7 +223,7 @@ cuentan como `429`, como en Traefik.
 | 18-C+CB-k6 | 21:03:27 | 15717 | 1031 | 14686 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 6,56 % | 25,46 | 2,08 / 5,71 | sí |
 
 - Corrida 16 original (A/k6): cortada a las 17:49 (−03) por falta de memoria del sistema, apenas
-  empezada la carga. Descartada (`results/38/2026-11-06-descartadas/`). Las 16 a 18 se
+  empezada la carga. Descartada (no versionada; está en el archivo de crudos, ver abajo). Las 16 a 18 se
   corrieron unos 10 minutos después, en primer plano.
 - En las 18 corridas: 0 reintentos, 0 líneas de aviso en el log de Traefik (el CB nunca abrió),
   0 `200` tardíos en extract.
