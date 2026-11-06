@@ -123,7 +123,7 @@ Cada réplica es un proceso de FastAPI sin estado que se registra en Consul con 
   - Vegeta: `peterevans/vegeta:6.9.1-vegeta12.8.4` (Vegeta 12.8.4, digest `sha256:eb65f499…d0502`) con `profesor/test_carga.txt`: 50 req/s, 30 s, timeout 30 s, cuerpo binario;
   - k6: `grafana/k6:2.2.0` (digest `sha256:9bd01d69…6ace6`) con `profesor/spike_tests.js`: 0 a 100 usuarios en 10 s, 20 s sostenidos y bajada en 10 s, con `TIMEOUT=30s` (el script trae 60 s por defecto) y `--out json` para tener el código de cada pedido.
   - En v1.0 se usaron k6 v2.2.0 y Vegeta v12.13.0 nativos.
-- **Qué se guarda por corrida** (`tests/stress/results/38/2026-11-06/<n>-<config>-<herramienta>/`): el reporte y los crudos, `make images`, las variables, `/metrics` de Traefik antes y después, el access log JSON de Traefik y el log de extract de la ventana, `docker stats` y las horas de inicio y fin. Los crudos no se versionan (~1,5 GB).
+- **Qué se guarda por corrida** (`tests/stress/results/38/2026-11-06/<n>-<config>-<herramienta>/`): el reporte y los crudos, `make images`, las variables, `/metrics` de Traefik antes y después, el access log JSON de Traefik y el log de extract de la ventana, `docker stats` y las horas de inicio y fin. Los crudos (~1,5 GB) no se versionan: están comprimidos fuera del repo (21 MB, ver la bitácora) por si hace falta revisarlos.
 - **Desglose de los no-`200`** (`tests/stress/bench/resumen_38.py`), comprobado antes de medir con pedidos de prueba que forzaban cada caso:
 
 | Motivo | Cómo se reconoce |
