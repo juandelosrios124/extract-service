@@ -1,0 +1,162 @@
+{
+  "corrida": "19-C+CB-documents",
+  "config": "C+CB",
+  "herramienta": "documents",
+  "imagen": "sha-ec5b762",
+  "inicio": "2026-11-06T21:08:47.471766266Z",
+  "fin": "2026-11-06T21:09:25.100866860Z",
+  "cliente": {
+    "solicitudes": 1500,
+    "exito_pct": 39.733333333333334,
+    "throughput_efectivo": 18.57331105979946,
+    "p50_s": 2.083136147,
+    "p95_s": 2.410674997,
+    "p50_200_s": 2.1852996035000003,
+    "p95_200_s": 2.54692756325
+  },
+  "desglose": {
+    "201_creado": 596,
+    "200_duplicado": 0,
+    "503_documents_cupo": 904,
+    "503_extract_no_disponible": 0,
+    "504_extract": 0,
+    "0_timeout_cliente": 0,
+    "0_conexion": 0,
+    "otros": 0
+  },
+  "extract_interno": {
+    "200": 596
+  },
+  "cruce_documents_extract": {
+    "201_creado": {
+      "200": 596
+    },
+    "503_documents_cupo": {
+      "sin_llamada_a_extract": 904
+    }
+  },
+  "fuentes": {
+    "cliente": {
+      "201_creado": 596,
+      "503_documents_cupo": 904
+    },
+    "traefik_documents": {
+      "201_creado": 596,
+      "503_documents_cupo": 904
+    },
+    "traefik_extract_interno": {
+      "200": 596
+    },
+    "metrics_entrypoint_web_post": {
+      "200": 596,
+      "201": 596,
+      "503": 904
+    },
+    "metrics_service_documents_post": {
+      "201": 596,
+      "503": 904
+    },
+    "metrics_service_extract_post": {
+      "200": 596
+    },
+    "extract_log_post": {
+      "200": 596
+    },
+    "documents_log": {
+      "Documento almacenado": 596
+    }
+  },
+  "controles": [
+    {
+      "control": "201_creado: Vegeta vs access log /documents",
+      "a": 596,
+      "b": 596,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "200_duplicado: Vegeta vs access log /documents",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "503_documents_cupo: Vegeta vs access log /documents",
+      "a": 904,
+      "b": 904,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "503_extract_no_disponible: Vegeta vs access log /documents",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "504_extract: Vegeta vs access log /documents",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "201: Vegeta vs 'Documento almacenado' en documents",
+      "a": 596,
+      "b": 596,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "duplicados en el log de documents (tiene que ser 0)",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "200: access log (web, /documents + /extract) vs metrics entrypoint",
+      "a": 596,
+      "b": 596,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "201: access log (web, /documents + /extract) vs metrics entrypoint",
+      "a": 596,
+      "b": 596,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "503: access log (web, /documents + /extract) vs metrics entrypoint",
+      "a": 904,
+      "b": 904,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "/extract internos: 200 en el access log vs log de extract",
+      "a": 596,
+      "b": 596,
+      "cierra": true,
+      "nota": "más 200 en extract = extracciones que terminaron después del 504"
+    },
+    {
+      "control": "503 de extract: access log vs log de extract",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "201 de documents vs /extract internos con 200",
+      "a": 596,
+      "b": 596,
+      "cierra": true,
+      "nota": ""
+    }
+  ]
+}

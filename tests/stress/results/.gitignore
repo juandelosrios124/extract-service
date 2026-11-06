@@ -1,3 +1,30 @@
-# Resultados de las corridas (se generan al correr k6/Vegeta; no se commitean)
+# Resultados de las corridas (se generan al correr k6/Vegeta). No se commitean,
+# salvo los de la issue #38: los reportes de texto, los resúmenes y lo que
+# identifica cada corrida (variables, imagen, horas, /metrics de Traefik).
+# Los crudos (.bin de Vegeta, k6-raw.json, un pedido por línea, access log de
+# Traefik y logs de extract y documents) quedan solo en la máquina: ~1,5 GB.
 *
 !.gitignore
+!38/
+!38/*/
+!38/*/resumen.md
+!38/*/resumen.json
+!38/*/*/
+!38/*/*/vegeta-report.txt
+!38/*/*/vegeta-report.json
+!38/*/*/k6-report.txt
+!38/*/*/k6-summary.json
+!38/*/*/desglose.json
+!38/*/*/run.vars
+!38/*/*/times.env
+!38/*/*/images.txt
+!38/*/*/metrics-before.prom
+!38/*/*/metrics-after.prom
+!38/*/*/traefik-middlewares.jsonl
+!38/*/*/consul-extract.json
+!38/*/*/docker-stats.jsonl
+!38/*/*/traefik-log.txt
+!38/*/*/wait-routes.txt
+# Las corridas de prueba y las descartadas no son parte de la medición.
+38/prueba*/
+38/*-descartadas/

@@ -1,0 +1,4377 @@
+{
+  "filas": [
+    {
+      "config": "A",
+      "herramienta": "k6",
+      "n": 3,
+      "corridas": [
+        "04-A-k6",
+        "07-A-k6",
+        "16-A-k6"
+      ],
+      "exito_pct": {
+        "media": 6.879769885137179,
+        "min": 5.597693223845045,
+        "max": 8.982694808442533
+      },
+      "throughput_efectivo": {
+        "media": 22.968703084251178,
+        "min": 22.103960396039604,
+        "max": 24.463840399002493
+      },
+      "req_s_todas": {
+        "media": 349.351045450859,
+        "min": 248.691358829961,
+        "max": 404.14330141816924
+      },
+      "p50_s": {
+        "media": 0.00672079,
+        "min": 0.004757822,
+        "max": 0.007990826
+      },
+      "p95_s": {
+        "media": 1.0387941296333287,
+        "min": 0.3561096653999938,
+        "max": 1.9163503109999924
+      },
+      "p50_200_s": {
+        "media": 2.469761666166667,
+        "min": 2.1414929925,
+        "max": 2.671750939
+      },
+      "p95_200_s": {
+        "media": 6.837493280566666,
+        "min": 5.857497186,
+        "max": 8.1501992009
+      },
+      "503_cupo": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_cola": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_deadline": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_extract_otro": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_cb": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "429_inflight": {
+        "media": 13123.0,
+        "min": 9099,
+        "max": 15210
+      },
+      "504_traefik": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "504_otro": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "404_sin_ruta": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "0_timeout_cliente": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "0_conexion": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "otros": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "config": "C",
+      "herramienta": "k6",
+      "n": 3,
+      "corridas": [
+        "05-C-k6",
+        "08-C-k6",
+        "17-C-k6"
+      ],
+      "exito_pct": {
+        "media": 6.674919535761902,
+        "min": 6.366879921259843,
+        "max": 7.178067391451145
+      },
+      "throughput_efectivo": {
+        "media": 25.245157938487115,
+        "min": 23.35,
+        "max": 26.575
+      },
+      "req_s_todas": {
+        "media": 378.5572095578602,
+        "min": 360.1118490224424,
+        "max": 405.71597290101636
+      },
+      "p50_s": {
+        "media": 0.006351799000000001,
+        "min": 0.0059112125,
+        "max": 0.0071538145
+      },
+      "p95_s": {
+        "media": 1.1605258997999959,
+        "min": 0.9677227775,
+        "max": 1.4576102177999963
+      },
+      "p50_200_s": {
+        "media": 2.475378025,
+        "min": 2.399627176,
+        "max": 2.5438812750000004
+      },
+      "p95_200_s": {
+        "media": 5.671587664816666,
+        "min": 5.0966750316,
+        "max": 6.47895507275
+      },
+      "503_cupo": {
+        "media": 2.3333333333333335,
+        "min": 0,
+        "max": 7
+      },
+      "503_cola": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_deadline": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_extract_otro": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_cb": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "429_inflight": {
+        "media": 14146.666666666666,
+        "min": 13473,
+        "max": 15221
+      },
+      "504_traefik": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "504_otro": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "404_sin_ruta": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "0_timeout_cliente": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "0_conexion": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "otros": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "config": "C+CB",
+      "herramienta": "k6",
+      "n": 3,
+      "corridas": [
+        "06-C+CB-k6",
+        "09-C+CB-k6",
+        "18-C+CB-k6"
+      ],
+      "exito_pct": {
+        "media": 6.769390485372379,
+        "min": 6.559776038684228,
+        "max": 7.0308381655245125
+      },
+      "throughput_efectivo": {
+        "media": 25.76863982556354,
+        "min": 25.17412935323383,
+        "max": 26.675
+      },
+      "req_s_todas": {
+        "media": 380.9222620908015,
+        "min": 375.0765374547222,
+        "max": 388.53564535492404
+      },
+      "p50_s": {
+        "media": 0.005268993666666666,
+        "min": 0.0050241,
+        "max": 0.005587372
+      },
+      "p95_s": {
+        "media": 1.1858570313333328,
+        "min": 1.1247337025999995,
+        "max": 1.2644691403999988
+      },
+      "p50_200_s": {
+        "media": 2.304381609,
+        "min": 2.077738755,
+        "max": 2.70606803
+      },
+      "p95_200_s": {
+        "media": 5.307498329283334,
+        "min": 4.75479813835,
+        "max": 5.7094027895
+      },
+      "503_cupo": {
+        "media": 1.3333333333333333,
+        "min": 0,
+        "max": 4
+      },
+      "503_cola": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_deadline": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_extract_otro": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_cb": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "429_inflight": {
+        "media": 14281.333333333334,
+        "min": 14053,
+        "max": 14686
+      },
+      "504_traefik": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "504_otro": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "404_sin_ruta": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "0_timeout_cliente": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "0_conexion": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "otros": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "config": "A",
+      "herramienta": "vegeta",
+      "n": 3,
+      "corridas": [
+        "01-A-vegeta",
+        "10-A-vegeta",
+        "13-A-vegeta"
+      ],
+      "exito_pct": {
+        "media": 79.26666666666667,
+        "min": 77.06666666666668,
+        "max": 80.53333333333333
+      },
+      "throughput_efectivo": {
+        "media": 36.56866171831664,
+        "min": 35.2432170691247,
+        "max": 37.579376045460464
+      },
+      "p50_s": {
+        "media": 1.3465331226666668,
+        "min": 1.232201249,
+        "max": 1.482035432
+      },
+      "p95_s": {
+        "media": 4.066006363333334,
+        "min": 3.239576104,
+        "max": 4.9595855
+      },
+      "p50_200_s": {
+        "media": 1.7540286500000002,
+        "min": 1.617625747,
+        "max": 1.8654657215000001
+      },
+      "p95_200_s": {
+        "media": 4.1466560685,
+        "min": 3.3054894460999997,
+        "max": 5.021559483900001
+      },
+      "503_cupo": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_cola": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_deadline": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_extract_otro": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_cb": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "429_inflight": {
+        "media": 311.0,
+        "min": 292,
+        "max": 344
+      },
+      "504_traefik": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "504_otro": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "404_sin_ruta": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "0_timeout_cliente": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "0_conexion": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "otros": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "config": "C",
+      "herramienta": "vegeta",
+      "n": 3,
+      "corridas": [
+        "02-C-vegeta",
+        "11-C-vegeta",
+        "14-C-vegeta"
+      ],
+      "exito_pct": {
+        "media": 78.53333333333335,
+        "min": 76.4,
+        "max": 79.60000000000001
+      },
+      "throughput_efectivo": {
+        "media": 36.229556625816265,
+        "min": 35.71539506085774,
+        "max": 36.69466543797228
+      },
+      "p50_s": {
+        "media": 1.3879239523333335,
+        "min": 1.259826587,
+        "max": 1.513442375
+      },
+      "p95_s": {
+        "media": 3.9949254693333334,
+        "min": 3.828239531,
+        "max": 4.204681259
+      },
+      "p50_200_s": {
+        "media": 1.7197487896666666,
+        "min": 1.5684783429999998,
+        "max": 1.809133145
+      },
+      "p95_200_s": {
+        "media": 4.0509997309,
+        "min": 3.8858137391499996,
+        "max": 4.27623399025
+      },
+      "503_cupo": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_cola": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_deadline": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_extract_otro": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_cb": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "429_inflight": {
+        "media": 322.0,
+        "min": 306,
+        "max": 354
+      },
+      "504_traefik": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "504_otro": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "404_sin_ruta": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "0_timeout_cliente": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "0_conexion": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "otros": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "config": "C+CB",
+      "herramienta": "vegeta",
+      "n": 3,
+      "corridas": [
+        "03-C+CB-vegeta",
+        "12-C+CB-vegeta",
+        "15-C+CB-vegeta"
+      ],
+      "exito_pct": {
+        "media": 78.24444444444445,
+        "min": 76.4,
+        "max": 79.80000000000001
+      },
+      "throughput_efectivo": {
+        "media": 35.97036773796119,
+        "min": 35.31023755892216,
+        "max": 36.34555575391514
+      },
+      "p50_s": {
+        "media": 1.1614294373333334,
+        "min": 1.078182345,
+        "max": 1.217331574
+      },
+      "p95_s": {
+        "media": 4.613032789333333,
+        "min": 4.445200215,
+        "max": 4.85714692
+      },
+      "p50_200_s": {
+        "media": 1.4648212181666667,
+        "min": 1.3829136095,
+        "max": 1.511135402
+      },
+      "p95_200_s": {
+        "media": 4.71266630985,
+        "min": 4.5171949362,
+        "max": 5.0211005525
+      },
+      "503_cupo": {
+        "media": 0.6666666666666666,
+        "min": 0,
+        "max": 2
+      },
+      "503_cola": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_deadline": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_extract_otro": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "503_cb": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "429_inflight": {
+        "media": 325.6666666666667,
+        "min": 303,
+        "max": 352
+      },
+      "504_traefik": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "504_otro": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "404_sin_ruta": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "0_timeout_cliente": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "0_conexion": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "otros": {
+        "media": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    }
+  ],
+  "corridas": [
+    {
+      "corrida": "01-A-vegeta",
+      "config": "A",
+      "herramienta": "vegeta",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:19:08.455573060Z",
+      "fin": "2026-11-06T20:19:43.414687835Z",
+      "cliente": {
+        "solicitudes": 1500,
+        "exito_pct": 77.06666666666668,
+        "throughput_efectivo": 35.2432170691247,
+        "p50_s": 1.325362687,
+        "p95_s": 3.998857486,
+        "p50_200_s": 1.7789944815,
+        "p95_200_s": 4.1129192754999995
+      },
+      "desglose": {
+        "200": 1156,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 344,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1156,
+          "429_inflight": 344
+        },
+        "traefik": {
+          "200": 1156,
+          "429_inflight": 344
+        },
+        "traefik_downstream_web": {
+          "200": 1156,
+          "429": 344
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1156,
+          "429": 344
+        },
+        "metrics_service_extract_post": {
+          "200": 1156
+        },
+        "extract_log_post": {
+          "200": 1156
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 1500,
+          "b": 1500,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1156,
+          "b": 1156,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1156,
+          "b": 1156,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 344,
+          "b": 344,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1156,
+          "b": 1156,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503_cupo: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cola: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_deadline: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cb: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: body en Vegeta vs access log",
+          "a": 344,
+          "b": 344,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504_traefik: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "02-C-vegeta",
+      "config": "C",
+      "herramienta": "vegeta",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:21:00.894420651Z",
+      "fin": "2026-11-06T20:21:35.066334198Z",
+      "cliente": {
+        "solicitudes": 1500,
+        "exito_pct": 76.4,
+        "throughput_efectivo": 35.71539506085774,
+        "p50_s": 1.390502895,
+        "p95_s": 4.204681259,
+        "p50_200_s": 1.781634881,
+        "p95_200_s": 4.27623399025
+      },
+      "desglose": {
+        "200": 1146,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 354,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1146,
+          "429_inflight": 354
+        },
+        "traefik": {
+          "200": 1146,
+          "429_inflight": 354
+        },
+        "traefik_downstream_web": {
+          "200": 1146,
+          "429": 354
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1146,
+          "429": 354
+        },
+        "metrics_service_extract_post": {
+          "200": 1146
+        },
+        "extract_log_post": {
+          "200": 1146
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 1500,
+          "b": 1500,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1146,
+          "b": 1146,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1146,
+          "b": 1146,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 354,
+          "b": 354,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1146,
+          "b": 1146,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503_cupo: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cola: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_deadline: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cb: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: body en Vegeta vs access log",
+          "a": 354,
+          "b": 354,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504_traefik: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "03-C+CB-vegeta",
+      "config": "C+CB",
+      "herramienta": "vegeta",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:22:53.505354656Z",
+      "fin": "2026-11-06T20:23:28.075784994Z",
+      "cliente": {
+        "solicitudes": 1500,
+        "exito_pct": 76.4,
+        "throughput_efectivo": 35.31023755892216,
+        "p50_s": 1.078182345,
+        "p95_s": 4.85714692,
+        "p50_200_s": 1.3829136095,
+        "p95_200_s": 5.0211005525
+      },
+      "desglose": {
+        "200": 1146,
+        "503_cupo": 2,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 352,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1146,
+          "429_inflight": 352,
+          "503_cupo": 2
+        },
+        "traefik": {
+          "200": 1146,
+          "429_inflight": 352,
+          "503_cupo": 2
+        },
+        "traefik_downstream_web": {
+          "200": 1146,
+          "429": 352,
+          "503": 2
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1146,
+          "429": 352,
+          "503": 2
+        },
+        "metrics_service_extract_post": {
+          "200": 1146,
+          "503": 2
+        },
+        "extract_log_post": {
+          "200": 1146,
+          "503": 2
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 1500,
+          "b": 1500,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1146,
+          "b": 1146,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1146,
+          "b": 1146,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 352,
+          "b": 352,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 2,
+          "b": 2,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1146,
+          "b": 1146,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 2,
+          "b": 2,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 2,
+          "b": 2,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503_cupo: body en Vegeta vs access log",
+          "a": 2,
+          "b": 2,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cola: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_deadline: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cb: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: body en Vegeta vs access log",
+          "a": 352,
+          "b": 352,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504_traefik: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "04-A-k6",
+      "config": "A",
+      "herramienta": "k6",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:24:48.035715321Z",
+      "fin": "2026-11-06T20:25:31.015642470Z",
+      "cliente": {
+        "solicitudes": 9997,
+        "exito_pct": 8.982694808442533,
+        "req_s_todas": 248.691358829961,
+        "throughput_efectivo": 22.33830845771144,
+        "duracion_s": 40.2,
+        "p50_s": 0.004757822,
+        "p95_s": 1.9163503109999924,
+        "p50_200_s": 2.1414929925,
+        "p95_200_s": 8.1501992009
+      },
+      "desglose": {
+        "200": 898,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 9099,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 898,
+          "429_inflight": 9095,
+          "0_conexion": 4
+        },
+        "traefik": {
+          "200": 898,
+          "429_inflight": 9099
+        },
+        "traefik_downstream_web": {
+          "200": 898,
+          "429": 9099
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 898,
+          "429": 9099
+        },
+        "metrics_service_extract_post": {
+          "200": 898
+        },
+        "extract_log_post": {
+          "200": 898
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 9997,
+          "b": 9997,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 898,
+          "b": 898,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 898,
+          "b": 898,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 9099,
+          "b": 9099,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 898,
+          "b": 898,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: k6 (+ código 0 que Traefik vio) vs access log",
+          "a": 9099,
+          "b": 9099,
+          "cierra": true,
+          "nota": "4 broken pipe: Traefik respondió 429 mientras k6 subía el body"
+        },
+        {
+          "control": "504_traefik: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "05-C-k6",
+      "config": "C",
+      "herramienta": "k6",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:26:50.280602007Z",
+      "fin": "2026-11-06T20:27:33.500805552Z",
+      "cliente": {
+        "solicitudes": 14809,
+        "exito_pct": 7.178067391451145,
+        "req_s_todas": 369.84380675012164,
+        "throughput_efectivo": 26.575,
+        "duracion_s": 40.0,
+        "p50_s": 0.00599037,
+        "p95_s": 1.4576102177999963,
+        "p50_200_s": 2.5438812750000004,
+        "p95_200_s": 5.4391328901
+      },
+      "desglose": {
+        "200": 1063,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 13746,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1063,
+          "429_inflight": 13746
+        },
+        "traefik": {
+          "200": 1063,
+          "429_inflight": 13746
+        },
+        "traefik_downstream_web": {
+          "200": 1063,
+          "429": 13746
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1063,
+          "429": 13746
+        },
+        "metrics_service_extract_post": {
+          "200": 1063
+        },
+        "extract_log_post": {
+          "200": 1063
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 14809,
+          "b": 14809,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1063,
+          "b": 1063,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1063,
+          "b": 1063,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 13746,
+          "b": 13746,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1063,
+          "b": 1063,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: k6 (+ código 0 que Traefik vio) vs access log",
+          "a": 13746,
+          "b": 13746,
+          "cierra": true,
+          "nota": "0 broken pipe: Traefik respondió 429 mientras k6 subía el body"
+        },
+        {
+          "control": "504_traefik: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "06-C+CB-k6",
+      "config": "C+CB",
+      "herramienta": "k6",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:28:52.715297000Z",
+      "fin": "2026-11-06T20:29:35.867822985Z",
+      "cliente": {
+        "solicitudes": 15065,
+        "exito_pct": 6.717557251908397,
+        "req_s_todas": 375.0765374547222,
+        "throughput_efectivo": 25.17412935323383,
+        "duracion_s": 40.2,
+        "p50_s": 0.005587372,
+        "p95_s": 1.2644691403999988,
+        "p50_200_s": 2.70606803,
+        "p95_200_s": 4.75479813835
+      },
+      "desglose": {
+        "200": 1012,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 14053,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1012,
+          "429_inflight": 14053
+        },
+        "traefik": {
+          "200": 1012,
+          "429_inflight": 14053
+        },
+        "traefik_downstream_web": {
+          "200": 1012,
+          "429": 14053
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1012,
+          "429": 14053
+        },
+        "metrics_service_extract_post": {
+          "200": 1012
+        },
+        "extract_log_post": {
+          "200": 1012
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 15065,
+          "b": 15065,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1012,
+          "b": 1012,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1012,
+          "b": 1012,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 14053,
+          "b": 14053,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1012,
+          "b": 1012,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: k6 (+ código 0 que Traefik vio) vs access log",
+          "a": 14053,
+          "b": 14053,
+          "cierra": true,
+          "nota": "0 broken pipe: Traefik respondió 429 mientras k6 subía el body"
+        },
+        {
+          "control": "504_traefik: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "07-A-k6",
+      "config": "A",
+      "herramienta": "k6",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:30:56.624277605Z",
+      "fin": "2026-11-06T20:31:39.783881859Z",
+      "cliente": {
+        "solicitudes": 16191,
+        "exito_pct": 6.0589216231239575,
+        "req_s_todas": 404.14330141816924,
+        "throughput_efectivo": 24.463840399002493,
+        "duracion_s": 40.1,
+        "p50_s": 0.007990826,
+        "p95_s": 0.8439224125000001,
+        "p50_200_s": 2.5960410670000003,
+        "p95_200_s": 5.857497186
+      },
+      "desglose": {
+        "200": 981,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 15210,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 981,
+          "429_inflight": 15210
+        },
+        "traefik": {
+          "200": 981,
+          "429_inflight": 15210
+        },
+        "traefik_downstream_web": {
+          "200": 981,
+          "429": 15210
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 981,
+          "429": 15210
+        },
+        "metrics_service_extract_post": {
+          "200": 981
+        },
+        "extract_log_post": {
+          "200": 981
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 16191,
+          "b": 16191,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 981,
+          "b": 981,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 981,
+          "b": 981,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 15210,
+          "b": 15210,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 981,
+          "b": 981,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: k6 (+ código 0 que Traefik vio) vs access log",
+          "a": 15210,
+          "b": 15210,
+          "cierra": true,
+          "nota": "0 broken pipe: Traefik respondió 429 mientras k6 subía el body"
+        },
+        {
+          "control": "504_traefik: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "08-C-k6",
+      "config": "C",
+      "herramienta": "k6",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:33:01.489780722Z",
+      "fin": "2026-11-06T20:33:44.474352946Z",
+      "cliente": {
+        "solicitudes": 16256,
+        "exito_pct": 6.366879921259843,
+        "req_s_todas": 405.71597290101636,
+        "throughput_efectivo": 25.810473815461346,
+        "duracion_s": 40.1,
+        "p50_s": 0.0059112125,
+        "p95_s": 0.9677227775,
+        "p50_200_s": 2.399627176,
+        "p95_200_s": 5.0966750316
+      },
+      "desglose": {
+        "200": 1035,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 15221,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1035,
+          "429_inflight": 15221
+        },
+        "traefik": {
+          "200": 1035,
+          "429_inflight": 15221
+        },
+        "traefik_downstream_web": {
+          "200": 1035,
+          "429": 15221
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1035,
+          "429": 15221
+        },
+        "metrics_service_extract_post": {
+          "200": 1035
+        },
+        "extract_log_post": {
+          "200": 1035
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 16256,
+          "b": 16256,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1035,
+          "b": 1035,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1035,
+          "b": 1035,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 15221,
+          "b": 15221,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1035,
+          "b": 1035,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: k6 (+ código 0 que Traefik vio) vs access log",
+          "a": 15221,
+          "b": 15221,
+          "cierra": true,
+          "nota": "0 broken pipe: Traefik respondió 429 mientras k6 subía el body"
+        },
+        {
+          "control": "504_traefik: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "09-C+CB-k6",
+      "config": "C+CB",
+      "herramienta": "k6",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:35:08.334606081Z",
+      "fin": "2026-11-06T20:35:51.966322788Z",
+      "cliente": {
+        "solicitudes": 15176,
+        "exito_pct": 7.0308381655245125,
+        "req_s_todas": 379.1546034627582,
+        "throughput_efectivo": 26.675,
+        "duracion_s": 40.0,
+        "p50_s": 0.005195508999999999,
+        "p95_s": 1.168368251,
+        "p50_200_s": 2.1293380419999997,
+        "p95_200_s": 5.458294060000001
+      },
+      "desglose": {
+        "200": 1067,
+        "503_cupo": 4,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 14105,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1067,
+          "429_inflight": 14105,
+          "503": 4
+        },
+        "traefik": {
+          "200": 1067,
+          "429_inflight": 14105,
+          "503_cupo": 4
+        },
+        "traefik_downstream_web": {
+          "200": 1067,
+          "429": 14105,
+          "503": 4
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1067,
+          "429": 14105,
+          "503": 4
+        },
+        "metrics_service_extract_post": {
+          "200": 1067,
+          "503": 4
+        },
+        "extract_log_post": {
+          "200": 1067,
+          "503": 4
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 15176,
+          "b": 15176,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1067,
+          "b": 1067,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1067,
+          "b": 1067,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 14105,
+          "b": 14105,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 4,
+          "b": 4,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1067,
+          "b": 1067,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 4,
+          "b": 4,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 4,
+          "b": 4,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503: k6 vs access log",
+          "a": 4,
+          "b": 4,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: k6 (+ código 0 que Traefik vio) vs access log",
+          "a": 14105,
+          "b": 14105,
+          "cierra": true,
+          "nota": "0 broken pipe: Traefik respondió 429 mientras k6 subía el body"
+        },
+        {
+          "control": "504_traefik: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "10-A-vegeta",
+      "config": "A",
+      "herramienta": "vegeta",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:37:14.753804398Z",
+      "fin": "2026-11-06T20:37:49.408646395Z",
+      "cliente": {
+        "solicitudes": 1500,
+        "exito_pct": 80.2,
+        "throughput_efectivo": 36.883392040364775,
+        "p50_s": 1.232201249,
+        "p95_s": 4.9595855,
+        "p50_200_s": 1.617625747,
+        "p95_200_s": 5.021559483900001
+      },
+      "desglose": {
+        "200": 1203,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 297,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1203,
+          "429_inflight": 297
+        },
+        "traefik": {
+          "200": 1203,
+          "429_inflight": 297
+        },
+        "traefik_downstream_web": {
+          "200": 1203,
+          "429": 297
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1203,
+          "429": 297
+        },
+        "metrics_service_extract_post": {
+          "200": 1203
+        },
+        "extract_log_post": {
+          "200": 1203
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 1500,
+          "b": 1500,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1203,
+          "b": 1203,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1203,
+          "b": 1203,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 297,
+          "b": 297,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1203,
+          "b": 1203,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503_cupo: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cola: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_deadline: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cb: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: body en Vegeta vs access log",
+          "a": 297,
+          "b": 297,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504_traefik: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "11-C-vegeta",
+      "config": "C",
+      "herramienta": "vegeta",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:39:10.042602783Z",
+      "fin": "2026-11-06T20:39:44.951123643Z",
+      "cliente": {
+        "solicitudes": 1500,
+        "exito_pct": 79.60000000000001,
+        "throughput_efectivo": 36.27860937861877,
+        "p50_s": 1.513442375,
+        "p95_s": 3.828239531,
+        "p50_200_s": 1.809133145,
+        "p95_200_s": 3.8858137391499996
+      },
+      "desglose": {
+        "200": 1194,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 306,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1194,
+          "429_inflight": 306
+        },
+        "traefik": {
+          "200": 1194,
+          "429_inflight": 306
+        },
+        "traefik_downstream_web": {
+          "200": 1194,
+          "429": 306
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1194,
+          "429": 306
+        },
+        "metrics_service_extract_post": {
+          "200": 1194
+        },
+        "extract_log_post": {
+          "200": 1194
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 1500,
+          "b": 1500,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1194,
+          "b": 1194,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1194,
+          "b": 1194,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 306,
+          "b": 306,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1194,
+          "b": 1194,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503_cupo: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cola: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_deadline: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cb: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: body en Vegeta vs access log",
+          "a": 306,
+          "b": 306,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504_traefik: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "12-C+CB-vegeta",
+      "config": "C+CB",
+      "herramienta": "vegeta",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:41:07.108545754Z",
+      "fin": "2026-11-06T20:41:42.279456646Z",
+      "cliente": {
+        "solicitudes": 1500,
+        "exito_pct": 79.80000000000001,
+        "throughput_efectivo": 36.25530990104625,
+        "p50_s": 1.217331574,
+        "p95_s": 4.445200215,
+        "p50_200_s": 1.500414643,
+        "p95_200_s": 4.5171949362
+      },
+      "desglose": {
+        "200": 1197,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 303,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1197,
+          "429_inflight": 303
+        },
+        "traefik": {
+          "200": 1197,
+          "429_inflight": 303
+        },
+        "traefik_downstream_web": {
+          "200": 1197,
+          "429": 303
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1197,
+          "429": 303
+        },
+        "metrics_service_extract_post": {
+          "200": 1197
+        },
+        "extract_log_post": {
+          "200": 1197
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 1500,
+          "b": 1500,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1197,
+          "b": 1197,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1197,
+          "b": 1197,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 303,
+          "b": 303,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1197,
+          "b": 1197,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503_cupo: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cola: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_deadline: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cb: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: body en Vegeta vs access log",
+          "a": 303,
+          "b": 303,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504_traefik: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "13-A-vegeta",
+      "config": "A",
+      "herramienta": "vegeta",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:43:04.243223416Z",
+      "fin": "2026-11-06T20:43:38.312231385Z",
+      "cliente": {
+        "solicitudes": 1500,
+        "exito_pct": 80.53333333333333,
+        "throughput_efectivo": 37.579376045460464,
+        "p50_s": 1.482035432,
+        "p95_s": 3.239576104,
+        "p50_200_s": 1.8654657215000001,
+        "p95_200_s": 3.3054894460999997
+      },
+      "desglose": {
+        "200": 1208,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 292,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1208,
+          "429_inflight": 292
+        },
+        "traefik": {
+          "200": 1208,
+          "429_inflight": 292
+        },
+        "traefik_downstream_web": {
+          "200": 1208,
+          "429": 292
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1208,
+          "429": 292
+        },
+        "metrics_service_extract_post": {
+          "200": 1208
+        },
+        "extract_log_post": {
+          "200": 1208
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 1500,
+          "b": 1500,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1208,
+          "b": 1208,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1208,
+          "b": 1208,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 292,
+          "b": 292,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1208,
+          "b": 1208,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503_cupo: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cola: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_deadline: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cb: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: body en Vegeta vs access log",
+          "a": 292,
+          "b": 292,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504_traefik: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "14-C-vegeta",
+      "config": "C",
+      "herramienta": "vegeta",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:44:55.347755947Z",
+      "fin": "2026-11-06T20:45:29.927210140Z",
+      "cliente": {
+        "solicitudes": 1500,
+        "exito_pct": 79.60000000000001,
+        "throughput_efectivo": 36.69466543797228,
+        "p50_s": 1.259826587,
+        "p95_s": 3.951855618,
+        "p50_200_s": 1.5684783429999998,
+        "p95_200_s": 3.9909514633000005
+      },
+      "desglose": {
+        "200": 1194,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 306,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1194,
+          "429_inflight": 306
+        },
+        "traefik": {
+          "200": 1194,
+          "429_inflight": 306
+        },
+        "traefik_downstream_web": {
+          "200": 1194,
+          "429": 306
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1194,
+          "429": 306
+        },
+        "metrics_service_extract_post": {
+          "200": 1194
+        },
+        "extract_log_post": {
+          "200": 1194
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 1500,
+          "b": 1500,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1194,
+          "b": 1194,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1194,
+          "b": 1194,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 306,
+          "b": 306,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1194,
+          "b": 1194,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503_cupo: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cola: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_deadline: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cb: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: body en Vegeta vs access log",
+          "a": 306,
+          "b": 306,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504_traefik: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "15-C+CB-vegeta",
+      "config": "C+CB",
+      "herramienta": "vegeta",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:46:48.191923037Z",
+      "fin": "2026-11-06T20:47:22.486177415Z",
+      "cliente": {
+        "solicitudes": 1500,
+        "exito_pct": 78.53333333333333,
+        "throughput_efectivo": 36.34555575391514,
+        "p50_s": 1.188774393,
+        "p95_s": 4.536751233,
+        "p50_200_s": 1.511135402,
+        "p95_200_s": 4.59970344085
+      },
+      "desglose": {
+        "200": 1178,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 322,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1178,
+          "429_inflight": 322
+        },
+        "traefik": {
+          "200": 1178,
+          "429_inflight": 322
+        },
+        "traefik_downstream_web": {
+          "200": 1178,
+          "429": 322
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1178,
+          "429": 322
+        },
+        "metrics_service_extract_post": {
+          "200": 1178
+        },
+        "extract_log_post": {
+          "200": 1178
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 1500,
+          "b": 1500,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1178,
+          "b": 1178,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1178,
+          "b": 1178,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 322,
+          "b": 322,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1178,
+          "b": 1178,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503_cupo: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cola: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_deadline: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_cb: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: body en Vegeta vs access log",
+          "a": 322,
+          "b": 322,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504_traefik: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: body en Vegeta vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "16-A-k6",
+      "config": "A",
+      "herramienta": "k6",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T20:59:17.389215511Z",
+      "fin": "2026-11-06T21:00:00.857827295Z",
+      "cliente": {
+        "solicitudes": 15953,
+        "exito_pct": 5.597693223845045,
+        "req_s_todas": 395.2184761044467,
+        "throughput_efectivo": 22.103960396039604,
+        "duracion_s": 40.4,
+        "p50_s": 0.007413722,
+        "p95_s": 0.3561096653999938,
+        "p50_200_s": 2.671750939,
+        "p95_200_s": 6.5047834548
+      },
+      "desglose": {
+        "200": 893,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 15060,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 893,
+          "429_inflight": 15060
+        },
+        "traefik": {
+          "200": 893,
+          "429_inflight": 15060
+        },
+        "traefik_downstream_web": {
+          "200": 893,
+          "429": 15060
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 893,
+          "429": 15060
+        },
+        "metrics_service_extract_post": {
+          "200": 893
+        },
+        "extract_log_post": {
+          "200": 893
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 15953,
+          "b": 15953,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 893,
+          "b": 893,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 893,
+          "b": 893,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 15060,
+          "b": 15060,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 893,
+          "b": 893,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: k6 (+ código 0 que Traefik vio) vs access log",
+          "a": 15060,
+          "b": 15060,
+          "cierra": true,
+          "nota": "0 broken pipe: Traefik respondió 429 mientras k6 subía el body"
+        },
+        {
+          "control": "504_traefik: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "17-C-k6",
+      "config": "C",
+      "herramienta": "k6",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T21:01:22.134053253Z",
+      "fin": "2026-11-06T21:02:05.382689196Z",
+      "cliente": {
+        "solicitudes": 14414,
+        "exito_pct": 6.479811294574719,
+        "req_s_todas": 360.1118490224424,
+        "throughput_efectivo": 23.35,
+        "duracion_s": 40.0,
+        "p50_s": 0.0071538145,
+        "p95_s": 1.0562447040999912,
+        "p50_200_s": 2.4826256239999998,
+        "p95_200_s": 6.47895507275
+      },
+      "desglose": {
+        "200": 934,
+        "503_cupo": 7,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 13473,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 934,
+          "429_inflight": 13473,
+          "503": 7
+        },
+        "traefik": {
+          "200": 934,
+          "429_inflight": 13473,
+          "503_cupo": 7
+        },
+        "traefik_downstream_web": {
+          "200": 934,
+          "429": 13473,
+          "503": 7
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 934,
+          "429": 13473,
+          "503": 7
+        },
+        "metrics_service_extract_post": {
+          "200": 934,
+          "503": 7
+        },
+        "extract_log_post": {
+          "200": 934,
+          "503": 7
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 14414,
+          "b": 14414,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 934,
+          "b": 934,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 934,
+          "b": 934,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 13473,
+          "b": 13473,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 7,
+          "b": 7,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 934,
+          "b": 934,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 7,
+          "b": 7,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 7,
+          "b": 7,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503: k6 vs access log",
+          "a": 7,
+          "b": 7,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: k6 (+ código 0 que Traefik vio) vs access log",
+          "a": 13473,
+          "b": 13473,
+          "cierra": true,
+          "nota": "0 broken pipe: Traefik respondió 429 mientras k6 subía el body"
+        },
+        {
+          "control": "504_traefik: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "corrida": "18-C+CB-k6",
+      "config": "C+CB",
+      "herramienta": "k6",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T21:03:27.494374262Z",
+      "fin": "2026-11-06T21:04:11.029306245Z",
+      "cliente": {
+        "solicitudes": 15717,
+        "exito_pct": 6.559776038684228,
+        "req_s_todas": 388.53564535492404,
+        "throughput_efectivo": 25.45679012345679,
+        "duracion_s": 40.5,
+        "p50_s": 0.0050241,
+        "p95_s": 1.1247337025999995,
+        "p50_200_s": 2.077738755,
+        "p95_200_s": 5.7094027895
+      },
+      "desglose": {
+        "200": 1031,
+        "503_cupo": 0,
+        "503_cola": 0,
+        "503_deadline": 0,
+        "503_extract_otro": 0,
+        "503_cb": 0,
+        "429_inflight": 14686,
+        "504_traefik": 0,
+        "504_otro": 0,
+        "404_sin_ruta": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "fuentes": {
+        "cliente": {
+          "200": 1031,
+          "429_inflight": 14686
+        },
+        "traefik": {
+          "200": 1031,
+          "429_inflight": 14686
+        },
+        "traefik_downstream_web": {
+          "200": 1031,
+          "429": 14686
+        },
+        "traefik_retry_attempts": 0,
+        "traefik_otros_paths": {},
+        "metrics_entrypoint_web_post": {
+          "200": 1031,
+          "429": 14686
+        },
+        "metrics_service_extract_post": {
+          "200": 1031
+        },
+        "extract_log_post": {
+          "200": 1031
+        },
+        "extract_log_deadlines": 0
+      },
+      "controles": [
+        {
+          "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+          "a": 15717,
+          "b": 15717,
+          "cierra": true,
+          "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+        },
+        {
+          "control": "200: cliente vs access log",
+          "a": 1031,
+          "b": 1031,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (entrypoint web) vs metrics entrypoint",
+          "a": 1031,
+          "b": 1031,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429: access log (entrypoint web) vs metrics entrypoint",
+          "a": 14686,
+          "b": 14686,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404: access log (entrypoint web) vs metrics entrypoint",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log con upstream vs metrics service",
+          "a": 1031,
+          "b": 1031,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504: access log con upstream vs metrics service",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 del CB: access log vs metrics (entrypoint − service)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503 por deadline: access log vs WARNING en extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200 tardíos (log de extract − access log)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+        },
+        {
+          "control": "503: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "429_inflight: k6 (+ código 0 que Traefik vio) vs access log",
+          "a": 14686,
+          "b": 14686,
+          "cierra": true,
+          "nota": "0 broken pipe: Traefik respondió 429 mientras k6 subía el body"
+        },
+        {
+          "control": "504_traefik: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "404_sin_ruta: k6 vs access log",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "corrida": "19-C+CB-documents",
+      "config": "C+CB",
+      "herramienta": "documents",
+      "imagen": "sha-ec5b762",
+      "inicio": "2026-11-06T21:08:47.471766266Z",
+      "fin": "2026-11-06T21:09:25.100866860Z",
+      "cliente": {
+        "solicitudes": 1500,
+        "exito_pct": 39.733333333333334,
+        "throughput_efectivo": 18.57331105979946,
+        "p50_s": 2.083136147,
+        "p95_s": 2.410674997,
+        "p50_200_s": 2.1852996035000003,
+        "p95_200_s": 2.54692756325
+      },
+      "desglose": {
+        "201_creado": 596,
+        "200_duplicado": 0,
+        "503_documents_cupo": 904,
+        "503_extract_no_disponible": 0,
+        "504_extract": 0,
+        "0_timeout_cliente": 0,
+        "0_conexion": 0,
+        "otros": 0
+      },
+      "extract_interno": {
+        "200": 596
+      },
+      "cruce_documents_extract": {
+        "201_creado": {
+          "200": 596
+        },
+        "503_documents_cupo": {
+          "sin_llamada_a_extract": 904
+        }
+      },
+      "fuentes": {
+        "cliente": {
+          "201_creado": 596,
+          "503_documents_cupo": 904
+        },
+        "traefik_documents": {
+          "201_creado": 596,
+          "503_documents_cupo": 904
+        },
+        "traefik_extract_interno": {
+          "200": 596
+        },
+        "metrics_entrypoint_web_post": {
+          "200": 596,
+          "201": 596,
+          "503": 904
+        },
+        "metrics_service_documents_post": {
+          "201": 596,
+          "503": 904
+        },
+        "metrics_service_extract_post": {
+          "200": 596
+        },
+        "extract_log_post": {
+          "200": 596
+        },
+        "documents_log": {
+          "Documento almacenado": 596
+        }
+      },
+      "controles": [
+        {
+          "control": "201_creado: Vegeta vs access log /documents",
+          "a": 596,
+          "b": 596,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200_duplicado: Vegeta vs access log /documents",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_documents_cupo: Vegeta vs access log /documents",
+          "a": 904,
+          "b": 904,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503_extract_no_disponible: Vegeta vs access log /documents",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "504_extract: Vegeta vs access log /documents",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "201: Vegeta vs 'Documento almacenado' en documents",
+          "a": 596,
+          "b": 596,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "duplicados en el log de documents (tiene que ser 0)",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "200: access log (web, /documents + /extract) vs metrics entrypoint",
+          "a": 596,
+          "b": 596,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "201: access log (web, /documents + /extract) vs metrics entrypoint",
+          "a": 596,
+          "b": 596,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "503: access log (web, /documents + /extract) vs metrics entrypoint",
+          "a": 904,
+          "b": 904,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "/extract internos: 200 en el access log vs log de extract",
+          "a": 596,
+          "b": 596,
+          "cierra": true,
+          "nota": "más 200 en extract = extracciones que terminaron después del 504"
+        },
+        {
+          "control": "503 de extract: access log vs log de extract",
+          "a": 0,
+          "b": 0,
+          "cierra": true,
+          "nota": ""
+        },
+        {
+          "control": "201 de documents vs /extract internos con 200",
+          "a": 596,
+          "b": 596,
+          "cierra": true,
+          "nota": ""
+        }
+      ]
+    }
+  ]
+}

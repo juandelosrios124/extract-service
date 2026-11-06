@@ -1,0 +1,2 @@
+==> wait-routes: esperando extract y documents en Traefik (hasta 60 s)
+[wait-routes] OK: Traefik rutea extract (5 servidores), documents (1 servidores)
