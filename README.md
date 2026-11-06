@@ -50,7 +50,7 @@ docker compose down
 | POST | `/extract` | Recibe un PDF como cuerpo binario (`Content-Type: application/pdf`) o como `multipart/form-data` (campo `file`) y responde `{"content": "...", "page_count": N}`. `content` es texto plano |
 | GET | `/health` | Estado del servicio |
 
-Errores: `400` (sin PDF o PDF inválido), `413` (supera `MAX_UPLOAD_SIZE`) y `503` con `Retry-After: 1` cuando el servicio está saturado (sin cupo o pedido vencido). Un `503` indica reintentar más tarde; no es una falla del servicio.
+Errores: `400` (sin PDF o PDF inválido), `413` (supera `MAX_UPLOAD_SIZE`), `422` (más páginas que `MAX_PAGES`) y `503` con `Retry-After: 1` cuando el servicio está saturado (sin cupo, pedido vencido en la cola, o extracción cortada por `EXTRACTION_DEADLINE`). Un `503` indica reintentar más tarde; no es una falla del servicio. Un `422`, en cambio, no se arregla reintentando: el documento es el problema, y por eso no lleva `Retry-After`.
 
 **Correlación.** Todo pedido acepta el header `X-Request-ID`. Si llega, se respeta; si no, se genera uno. El id vuelve en la respuesta y aparece en cada línea de log del pedido, incluido el access log de uvicorn y lo que loguea la extracción. Es el mismo header que propaga `documents-service`, así que un pedido se puede seguir por los dos servicios con el mismo id.
 
@@ -65,8 +65,10 @@ Todo se configura por variables de entorno (Twelve-Factor). Los valores por defe
 | `EXTRACT_MEMORY` | `1g` | Tope de la consigna (512 MB a 1 GB); el uso real es mucho menor |
 | `EXTRACT_THREAD_POOL_SIZE` | `1` | Un worker por núcleo asignado. La extracción consume CPU: con 4 hilos sobre 1,0 CPU solo había contención y latencias de 22 s o más |
 | `EXTRACT_MAX_CONCURRENT_UPLOADS` | `8` | Cada réplica atiende como máximo 8 pedidos a la vez; acota la memoria y evita acumular pedidos que van a expirar |
-| `EXTRACT_UPLOAD_SLOT_TIMEOUT` | `15` | Segundos que un pedido espera un cupo (sin leer el cuerpo) antes de recibir `503`. Menos de la mitad del timeout de 30 s del cliente |
-| `EXTRACT_MAX_QUEUE_WAIT` | `20` | Si un pedido ya esperó 20 s antes de empezar a extraer, se descarta con `503` sin gastar CPU |
+| `EXTRACT_UPLOAD_SLOT_TIMEOUT` | `5` | Segundos que un pedido espera un cupo (sin leer el cuerpo) antes de recibir `503` |
+| `EXTRACT_MAX_QUEUE_WAIT` | `15` | Si un pedido ya esperó 15 s antes de empezar a extraer, se descarta con `503` sin gastar CPU |
+| `EXTRACT_EXTRACTION_DEADLINE` | `8` | Segundos máximos de extracción, chequeados **entre páginas**. Pasado eso, `503`: sin esto un PDF pesado congela la réplica, porque la extracción corre en el pool y no se puede cancelar |
+| `EXTRACT_MAX_PAGES` | `10000` | Tope duro de páginas. Por encima se responde `422` sin extraer nada. No está afinado contra el deadline: es un techo para entradas absurdas |
 | `EXTRACT_MAX_UPLOAD_SIZE` | `52428800` | 50 MiB; el cuerpo se corta apenas se supera |
 | `EXTRACT_LOG_LEVEL` | `INFO` | Logs a stdout |
 | `EXTRACT_LOG_FORMAT` | `json` | `json` emite un objeto por línea con `request_id`, para recolectores de logs; `text` queda legible en una terminal. El default del código es `text` |
@@ -77,7 +79,7 @@ Todo se configura por variables de entorno (Twelve-Factor). Los valores por defe
 
 Los timeouts del borde ya no son de este repo: los define Traefik y están en el repo de [infra](https://github.com/juandelosrios124/pdf_extractext-infra), documentados en su tabla «Presupuesto de timeouts».
 
-**Por qué esta configuración.** En la prueba de la cátedra (Vegeta, 50 req/s durante 30 s) la configuración sin límites logró 68,93 % de éxito y 17,30 req/s; con el límite de 8 por réplica, **76,13 % y 20,06 req/s**, con 262 timeouts contra 465 y 96 respuestas `503` controladas. La referencia de la cátedra es 66,53 % y 16,65 req/s. Los valores 8, 15 s y 20 s son un primer ajuste razonado, no un óptimo: ver el informe.
+**Por qué esta configuración.** En la prueba de la cátedra (Vegeta, 50 req/s durante 30 s) la configuración sin límites logró 68,93 % de éxito y 17,30 req/s; con el límite de 8 por réplica, **76,13 % y 20,06 req/s**, con 262 timeouts contra 465 y 96 respuestas `503` controladas. La referencia de la cátedra es 66,53 % y 16,65 req/s. Los valores 8 cupos, 5 s de espera, 15 s de descarte y 8 s de deadline son un primer ajuste razonado, no un óptimo: los tres tiempos suman los 23 s que le tocan a extract en el presupuesto de punta a punta (cliente 30 s > documents 27 s > Traefik 25 s > extract 23 s), definido en el repo de [infra](https://github.com/juandelosrios124/pdf_extractext-infra). Las mediciones del informe se hicieron con 15 s y 20 s; volver a medirlas es la #38.
 
 Para reproducir la configuración **sin límites** (A):
 

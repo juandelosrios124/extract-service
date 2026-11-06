@@ -29,10 +29,10 @@ def test_health_responde_de_inmediato_con_todos_los_cupos_ocupados(monkeypatch):
     release_extraction = threading.Event()
     original = extract_module.extract_pdf_content
 
-    def blocked(pdf_bytes):
+    def blocked(pdf_bytes, **kwargs):
         extraction_started.set()
         release_extraction.wait(timeout=5)
-        return original(pdf_bytes)
+        return original(pdf_bytes, **kwargs)
 
     monkeypatch.setattr(extract_module, "extract_pdf_content", blocked)
 

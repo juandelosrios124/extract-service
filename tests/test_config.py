@@ -13,6 +13,8 @@ ENV_VARS = (
     "MAX_QUEUE_WAIT",
     "MAX_CONCURRENT_UPLOADS",
     "UPLOAD_SLOT_TIMEOUT",
+    "EXTRACTION_DEADLINE",
+    "MAX_PAGES",
     "LOG_LEVEL",
     "CONSUL_ENABLED",
     "CONSUL_HTTP_ADDR",
@@ -46,8 +48,10 @@ def test_los_defaults_son_los_valores_de_produccion():
 
     assert settings.THREAD_POOL_SIZE == 1
     assert settings.MAX_CONCURRENT_UPLOADS == 8
-    assert settings.UPLOAD_SLOT_TIMEOUT == 15.0
-    assert settings.MAX_QUEUE_WAIT == 20.0
+    assert settings.UPLOAD_SLOT_TIMEOUT == 5.0
+    assert settings.MAX_QUEUE_WAIT == 15.0
+    assert settings.EXTRACTION_DEADLINE == 8.0
+    assert settings.MAX_PAGES == 10000
 
 
 def test_settings_are_read_from_environment(monkeypatch):

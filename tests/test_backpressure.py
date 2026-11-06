@@ -27,9 +27,9 @@ def spy(monkeypatch):
     calls = []
     original = extract_module.extract_pdf_content
 
-    def counting(pdf_bytes):
+    def counting(pdf_bytes, **kwargs):
         calls.append(len(pdf_bytes))
-        return original(pdf_bytes)
+        return original(pdf_bytes, **kwargs)
 
     monkeypatch.setattr(extract_module, "extract_pdf_content", counting)
     return calls

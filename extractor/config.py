@@ -24,11 +24,22 @@ class Settings(BaseSettings):
     THREAD_POOL_SIZE: int = Field(default=1, gt=0)
     # Backpressure: segundos máximos entre que empieza el pedido y que arranca la extracción.
     # Pasado ese tiempo el cliente ya suele haberse ido: se responde 503 sin gastar CPU.
-    MAX_QUEUE_WAIT: float = Field(default=20.0, gt=0)
+    # Los 5 + 15 + 8 de abajo son el tramo de extract del presupuesto de timeouts
+    # de punta a punta (cliente 30 s > documents 27 s > Traefik 25 s > extract 23 s).
+    MAX_QUEUE_WAIT: float = Field(default=15.0, gt=0)
     # Backpressure: cuántos pedidos atiende a la vez cada réplica (leer el cuerpo y extraer).
     # 0 = sin límite. Los demás esperan hasta UPLOAD_SLOT_TIMEOUT segundos y después reciben 503.
     MAX_CONCURRENT_UPLOADS: int = Field(default=8, ge=0)
-    UPLOAD_SLOT_TIMEOUT: float = Field(default=15.0, gt=0)
+    UPLOAD_SLOT_TIMEOUT: float = Field(default=5.0, gt=0)
+    # Segundos máximos de extracción, chequeados entre páginas. Pasado el
+    # deadline se responde 503: run_in_executor no se puede cancelar, así que sin
+    # esto un PDF pesado congela la réplica entera (issue #34). 0 = sin límite.
+    EXTRACTION_DEADLINE: float = Field(default=8.0, ge=0)
+    # Tope duro de páginas, rechazado con 422 antes de extraer nada. No está
+    # afinado contra el deadline (el costo por página varía muchísimo): es un
+    # techo para entradas absurdas, y el deadline es la protección real.
+    # 0 = sin límite.
+    MAX_PAGES: int = Field(default=10000, ge=0)
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     # json para los recolectores de logs, text para leer en una terminal.
     LOG_FORMAT: Literal["text", "json"] = "text"

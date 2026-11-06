@@ -4,6 +4,8 @@ Versión v1.1 · Desarrollo de Software · UTN Facultad Regional San Rafael
 Autores: Juan Ignacio De Los Rios, Santino Olivetti
 
 > Convenciones: lo marcado como **hipótesis** no fue aislado con un experimento propio.
+> Los valores de configuración que aparecen en el informe son **los que se midieron**;
+> varios cambiaron después (issue #34), ver la nota en §5.3.
 
 ## 1. Resumen ejecutivo
 
@@ -131,6 +133,8 @@ Otras mediciones del proceso:
 | Admisión por cupos | `MAX_CONCURRENT_UPLOADS` | 8 por réplica | Solo 8 pedidos se leen y procesan a la vez |
 | Espera por un cupo | `UPLOAD_SLOT_TIMEOUT` | 15 s | Sin cupo en 15 s, `503` con `Retry-After: 1`; mientras espera **no se lee el cuerpo** |
 | Descarte de vencidos | `MAX_QUEUE_WAIT` | 20 s | Si el pedido ya esperó 20 s, se responde `503` sin extraer |
+
+> **Los valores de la tabla son los que se midieron.** Desde la issue #34 los defaults son otros: `UPLOAD_SLOT_TIMEOUT` 5 s, `MAX_QUEUE_WAIT` 15 s, y se agregó un `EXTRACTION_DEADLINE` de 8 s más un tope de páginas (`MAX_PAGES`, `422`). Los tres tiempos suman los 23 s que le tocan a extract en el presupuesto de timeouts de punta a punta (cliente 30 s > documents 27 s > Traefik 25 s > extract 23 s). Repetir las mediciones con esos valores y detrás de Traefik es la issue #38.
 
 **Criterio de los valores** (razonamiento, no una búsqueda exhaustiva):
 - Los 15 s y 20 s dejan margen frente al timeout de 30 s del cliente: un pedido admitido conserva al menos 10 a 15 s para subir y extraer.
