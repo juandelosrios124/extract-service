@@ -79,7 +79,7 @@ Todo se configura por variables de entorno (Twelve-Factor). Los valores por defe
 | `SHARED_NETWORK` | `mired` | Nombre de la red externa compartida con Consul y documents-service. Es la misma variable en los tres repos: si se cambia, hay que cambiarla en todos |
 | `CONSUL_ENABLED` | `true` | Autorregistro en Consul, que es cómo Traefik descubre las réplicas (#32). En `false` el servicio funciona igual, pero queda sin publicar |
 | `CONSUL_HTTP_ADDR` | `http://consul:8500` | Agente de Consul, visto desde `mired` |
-| `CONSUL_HTTP_TOKEN` | *(vacío)* | Token de ACL de Consul. Solo por entorno, nunca en el repo |
+| `CONSUL_HTTP_TOKEN` | *(vacío)* | Token de ACL de Consul. Va en el `.env` (no versionado), con el valor de `CONSUL_EXTRACT_TOKEN` del `.env` de infra: ver [Qué va en el `.env` de cada repo](https://github.com/juandelosrios124/pdf_extractext-infra#qué-va-en-el-env-de-cada-repo) |
 
 Los timeouts del borde ya no son de este repo: los define Traefik y están en el repo de [infra](https://github.com/juandelosrios124/pdf_extractext-infra), documentados en su tabla «Presupuesto de timeouts».
 
@@ -115,13 +115,26 @@ Antes había además una red privada del proyecto, por donde entraba Caddy. Con 
 
 Cada réplica se registra sola en [Consul](https://github.com/juandelosrios124/pdf_extractext-infra) al arrancar y se desregistra al apagarse. **Viene encendido** en el compose desde la #32, porque es así como Traefik descubre las réplicas. Igual nunca es fatal: si Consul no está o el registro falla, la réplica arranca de todas formas y solo queda un `WARNING` en el log (el default del código, fuera de Compose, sigue siendo `false`).
 
-Si el Consul de infra tiene ACLs con `default_policy = "deny"`, hay que pasarle el token:
+El Consul de infra corre con ACLs en `default_policy = "deny"`: sin un token válido, Consul rechaza el registro y Traefik nunca rutea las réplicas, aunque Docker las muestre `healthy`. El token va en el `.env` de este repo, con el valor de `CONSUL_EXTRACT_TOKEN` del `.env` de infra (no el de management):
 
-```bash
-CONSUL_HTTP_TOKEN=<el mismo UUID que el .env de infra> docker compose up -d --force-recreate --wait
+```dotenv
+# .env de extract-service
+CONSUL_HTTP_TOKEN=<valor de CONSUL_EXTRACT_TOKEN del .env de infra>
 ```
 
-En PowerShell: `$env:CONSUL_HTTP_TOKEN="<uuid>"; docker compose up -d --force-recreate --wait`.
+Después:
+
+```bash
+docker compose up -d --wait        # Compose recrea las réplicas si cambió el token
+```
+
+No hay que exportarlo en el shell ni anteponerlo al comando: Compose les da prioridad a las variables del shell sobre el `.env`, así que un valor exportado (por ejemplo, el de management) pisaría el correcto. Si las réplicas no se registran, el log lo dice:
+
+```bash
+docker compose logs extract | grep "No se pudo registrar"
+```
+
+Qué token va en cada repo: [Qué va en el `.env` de cada repo](https://github.com/juandelosrios124/pdf_extractext-infra#qué-va-en-el-env-de-cada-repo).
 
 Lo que registra cada réplica:
 
