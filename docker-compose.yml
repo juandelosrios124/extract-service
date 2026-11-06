@@ -54,8 +54,13 @@ services:
       TRAEFIK_CB_EXPRESSION: "${TRAEFIK_CB_EXPRESSION:-NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 503, 0, 600) > 0.50}"
       TRAEFIK_CB_FALLBACK: ${TRAEFIK_CB_FALLBACK:-10s}
       TRAEFIK_CB_RECOVERY: ${TRAEFIK_CB_RECOVERY:-10s}
+      # Retry solo ante error de red antes de mandar el pedido (POST incluido);
+      # no reintenta respuestas ni el 504 por timeout (issue #55).
       TRAEFIK_RETRY_ATTEMPTS: ${TRAEFIK_RETRY_ATTEMPTS:-2}
       TRAEFIK_INFLIGHT: ${TRAEFIK_INFLIGHT:-80}
+      # Un unico tope de pedidos en vuelo: Traefik pisa X-Forwarded-Server con
+      # su hostname. Vacio = un tope por cada Host (default de Traefik).
+      TRAEFIK_INFLIGHT_SOURCE_HEADER: ${TRAEFIK_INFLIGHT_SOURCE_HEADER-X-Forwarded-Server}
     deploy:
       replicas: ${EXTRACT_REPLICAS:-5}
       resources:
