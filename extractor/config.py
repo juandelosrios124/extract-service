@@ -69,8 +69,16 @@ class Settings(BaseSettings):
     )
     TRAEFIK_CB_FALLBACK: str = "10s"
     TRAEFIK_CB_RECOVERY: str = "10s"
+    # Intentos ante error de red antes de mandarle el pedido a la replica (POST
+    # incluido); no reintenta respuestas ni el 504 por timeout (issue #55).
     TRAEFIK_RETRY_ATTEMPTS: int = Field(default=2, ge=1)
     # Tope de pedidos simultaneos en el borde. El doble de la capacidad agregada
     # (5 replicas x 8 cupos): el control primario sigue siendo la admision por
     # cupos de la app, que es la que esta medida en el informe.
     TRAEFIK_INFLIGHT: int = Field(default=80, gt=0)
+    # Header por el que Traefik agrupa los pedidos en vuelo (issue #55).
+    # X-Forwarded-Server lo pisa Traefik con su hostname: un unico tope para
+    # todos los clientes. Vacio = default de Traefik, un tope por cada Host.
+    TRAEFIK_INFLIGHT_SOURCE_HEADER: str = Field(
+        default="X-Forwarded-Server", pattern=r"^[A-Za-z0-9-]*$"
+    )

@@ -183,6 +183,10 @@ medición. Para revisarlos: `tar -I zstd -xf extract-service-38-crudos-2026-11-0
   con `expected int, got int` y todo da `404`. Con `> 1.0` funciona.
 - El retry (2 intentos) no reintenta `POST`: la API de Traefik lo muestra sin
   `retryNonIdempotentMethod` y `RetryAttempts` dio 0 en todas las pruebas.
+  **Corregido en la #55:** el retry sí reintenta `POST` ante un error de red antes de
+  mandar el pedido; `retryNonIdempotentMethod` solo afecta al retry por status, y en
+  v3.7.17 este middleware no informa sus reintentos en `RetryAttempts` ni en `/metrics`.
+  Que en estas pruebas no hubo reintentos sigue valiendo: no hubo errores de red.
 - Durante el recreate, Traefik muestra un momento las réplicas viejas: contar servidores no
   alcanza para saber si ya rutea las nuevas (se compara con las IPs de los contenedores).
 
