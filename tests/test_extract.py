@@ -114,9 +114,9 @@ class TestExtractionThreadPool:
     def test_extraction_runs_in_the_dedicated_pool(self, client, sample_pdf_bytes):
         thread_names = []
 
-        def spy(pdf_bytes):
+        def spy(pdf_bytes, **kwargs):
             thread_names.append(threading.current_thread().name)
-            return extract_pdf_content(pdf_bytes)
+            return extract_pdf_content(pdf_bytes, **kwargs)
 
         with patch("extractor.api.extract.extract_pdf_content", spy):
             client.post(

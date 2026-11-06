@@ -18,10 +18,14 @@ services:
       THREAD_POOL_SIZE: ${EXTRACT_THREAD_POOL_SIZE:-1}
       LOG_LEVEL: ${EXTRACT_LOG_LEVEL:-INFO}
       LOG_FORMAT: ${EXTRACT_LOG_FORMAT:-json}
-      MAX_QUEUE_WAIT: ${EXTRACT_MAX_QUEUE_WAIT:-20}
-      # Backpressure: las lee la app.
+      # Backpressure y limites de la extraccion: las lee la app. Los 5 + 15 + 8
+      # son el tramo de extract del presupuesto de timeouts de punta a punta
+      # (cliente 30 s > documents 27 s > Traefik 25 s > extract 23 s), issue #34.
+      MAX_QUEUE_WAIT: ${EXTRACT_MAX_QUEUE_WAIT:-15}
       MAX_CONCURRENT_UPLOADS: ${EXTRACT_MAX_CONCURRENT_UPLOADS:-8}
-      UPLOAD_SLOT_TIMEOUT: ${EXTRACT_UPLOAD_SLOT_TIMEOUT:-15}
+      UPLOAD_SLOT_TIMEOUT: ${EXTRACT_UPLOAD_SLOT_TIMEOUT:-5}
+      EXTRACTION_DEADLINE: ${EXTRACT_EXTRACTION_DEADLINE:-8}
+      MAX_PAGES: ${EXTRACT_MAX_PAGES:-10000}
       # Service discovery (issue #16). Encendido por defecto desde la #32:
       # Traefik descubre las replicas por el catalogo de Consul. Si Consul no
       # esta, el registro falla con un WARNING y la replica arranca igual. El

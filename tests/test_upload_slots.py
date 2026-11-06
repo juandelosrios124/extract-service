@@ -27,9 +27,9 @@ def slow_extraction(monkeypatch):
     """Hace que cada extracción tarde 0,4 s para poder solapar pedidos."""
     original = extract_module.extract_pdf_content
 
-    def slow(pdf_bytes):
+    def slow(pdf_bytes, **kwargs):
         time.sleep(0.4)
-        return original(pdf_bytes)
+        return original(pdf_bytes, **kwargs)
 
     monkeypatch.setattr(extract_module, "extract_pdf_content", slow)
 

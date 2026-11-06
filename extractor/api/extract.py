@@ -18,7 +18,12 @@ from extractor.api.dependencies import get_extraction_pool, get_settings, get_up
 from extractor.api.multipart import MULTIPART_FILE_FIELD, file_from_multipart
 from extractor.api.schemas import ExtractResponse
 from extractor.config import Settings
-from extractor.services.pdf_extraction import PdfExtraction, extract_pdf_content
+from extractor.services.pdf_extraction import (
+    ExtractionTimeout,
+    PdfExtraction,
+    TooManyPages,
+    extract_pdf_content,
+)
 
 router = APIRouter()
 
@@ -103,12 +108,34 @@ async def _extract(
             pdf_bytes,
             started_at,
             settings.MAX_QUEUE_WAIT,
+            settings.EXTRACTION_DEADLINE,
+            settings.MAX_PAGES,
         )
     except RequestExpired:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Servicio saturado: el pedido esperó demasiado en la cola",
             headers={"Retry-After": "1"},
+        )
+    except ExtractionTimeout as error:
+        # 503 y no 500: la réplica está sana, lo que se agotó es el presupuesto
+        # de tiempo. Reintentar con menos carga puede andar (issue #34).
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                f"La extracción no terminó en {error.deadline:g} s: "
+                f"{error.pages_done} de {error.page_count} páginas"
+            ),
+            headers={"Retry-After": "1"},
+        )
+    except TooManyPages as error:
+        # 422 y no 413: el tamaño está bien, lo que el servicio no procesa es
+        # este documento. Reintentar no sirve, así que no lleva Retry-After.
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=(
+                f"El PDF tiene {error.page_count} páginas y el máximo es {error.max_pages}"
+            ),
         )
     except ValueError:
         raise HTTPException(
@@ -125,12 +152,16 @@ async def _extract(
 
 
 def _extract_if_not_expired(
-    pdf_bytes: memoryview, started_at: float, max_wait: float
+    pdf_bytes: memoryview,
+    started_at: float,
+    max_wait: float,
+    deadline: float,
+    max_pages: int,
 ) -> PdfExtraction:
     """Runs in a worker thread: skip the work if the request already expired in the queue."""
     if time.monotonic() - started_at > max_wait:
         raise RequestExpired
-    return extract_pdf_content(pdf_bytes)
+    return extract_pdf_content(pdf_bytes, deadline=deadline, max_pages=max_pages)
 
 
 async def _read_body_within_limit(request: Request, max_size: int) -> bytearray:
