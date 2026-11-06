@@ -13,7 +13,6 @@ Para levantar el sistema completo en orden (infra, extract y documents), lo reco
 ```bash
 git clone https://github.com/juandelosrios124/extract-service.git
 cd extract-service
-git checkout v1.1
 
 # Red externa compartida con Consul, Traefik y documents-service: una sola vez
 # por maquina. Si ya existe (la pudo crear otro repo), ignorar el error.
@@ -22,7 +21,7 @@ docker network create mired
 docker compose up --build -d --wait
 ```
 
-Así se compila la imagen en la máquina (desarrollo, lo mismo que hace `make up` de infra). Para correr la imagen que publica la CI, sin compilar, ver [Imagen y releases](#imagen-y-releases-12-factor-v).
+Así se compila la imagen en la máquina (desarrollo, lo mismo que hace `make up` de infra). Para correr la imagen que publica la CI, sin compilar, ver [Imagen y releases](#imagen-y-releases-12-factor-v). La versión que se midió en el informe es la imagen `sha-ec5b762` (`EXTRACT_IMAGE_TAG=sha-ec5b762 docker compose -f docker-compose.yml up -d --wait`); no hay tag de git `v1.1`.
 
 Levanta **5 réplicas** (1,0 CPU y 1 GiB cada una). Este compose **no publica ningún puerto**: el punto de entrada es **Traefik**, que vive en el repo de [infra](https://github.com/juandelosrios124/pdf_extractext-infra) y descubre las réplicas por el catálogo de Consul. Hay que levantarlo ahí:
 
@@ -318,8 +317,8 @@ Se escribieron con TDD (rojo, verde, refactor).
 Los 4 PDFs oficiales están en `tests/stress/pdfs/` y los scripts de la cátedra, adaptados para leer la URL y la carpeta de PDFs del entorno, en `tests/stress/profesor/` (los originales, en `original/`). Con el stack levantado:
 
 ```bash
-# Vegeta: 50 req/s durante 30 s, timeout de 30 s (por la red interna de Docker)
-docker run --rm --network extract-service_default -v "$PWD/tests/stress:/stress" --entrypoint sh peterevans/vegeta -c "vegeta attack -targets=/stress/profesor/test_carga.txt -rate=50 -duration=30s -timeout=30s | vegeta report"
+# Vegeta: 50 req/s durante 30 s, timeout de 30 s (por mired, la red de Traefik)
+docker run --rm --network mired -v "$PWD/tests/stress:/stress" --entrypoint sh peterevans/vegeta:6.9.1-vegeta12.8.4 -c "vegeta attack -targets=/stress/profesor/test_carga.txt -rate=50 -duration=30s -timeout=30s | vegeta report"
 
 # k6: spike de 100 usuarios virtuales
 k6 run tests/stress/profesor/spike_tests.js
@@ -330,7 +329,16 @@ En PowerShell, reemplazar `$PWD` por `${PWD}`. Recomendaciones para medir:
 - Recrear las réplicas y esperar ~60 s antes de cada corrida.
 - Una sola corrida varía unos 13 puntos de éxito: comparar promedios de varias corridas alternadas.
 
-Los scripts `tests/stress/k6/spike.js` y `tests/stress/vegeta/attack.sh` envían los PDFs como `multipart/form-data`. Los resultados se guardan en `tests/stress/results/` (no se versiona). `tests/stress/generate_pdfs.py` genera un set sintético para diagnóstico.
+Los scripts `tests/stress/k6/spike.js` y `tests/stress/vegeta/attack.sh` envían los PDFs como `multipart/form-data`. Los resultados se guardan en `tests/stress/results/` (no se versiona, salvo los resúmenes de la #38). `tests/stress/generate_pdfs.py` genera un set sintético para diagnóstico.
+
+**Matriz del informe (issue #38).** La comparación A, C y C+CB de §5.3 se corre con un solo script, que usa la imagen publicada (`sha-ec5b762`), los dos scripts de la cátedra en contenedores con versión fija dentro de `mired` y 3 rondas alternadas, y después arma la tabla con media, mínimo y máximo:
+
+```bash
+tests/stress/bench/run-38.sh                                                    # 18 corridas, ~45 min
+uv run python tests/stress/bench/resumen_38.py tests/stress/results/38/$(date +%Y-%m-%d)
+```
+
+Necesita infra y documents levantados (`make up RELEASE=1 ...` en infra). Las variables, el desglose de errores por motivo y la corrida de `POST /documents` están en [`tests/stress/README.md`](tests/stress/README.md#matriz-de-la-issue-38-a-c-y-ccb).
 
 ## Estructura
 

@@ -1,0 +1,174 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: /stress/profesor/spike_tests.js
+        output: json (/out/k6-raw.json)
+
+     scenarios: (100.00%) 1 scenario, 100 max VUs, 1m10s max duration (incl. graceful stop):
+              * default: Up to 100 looping VUs for 40s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+running (0m00.7s), 007/100 VUs, 16 complete and 0 interrupted iterations
+default   [   2% ] 007/100 VUs  00.7s/40.0s
+
+running (0m01.7s), 017/100 VUs, 46 complete and 0 interrupted iterations
+default   [   4% ] 017/100 VUs  01.7s/40.0s
+
+running (0m02.7s), 027/100 VUs, 81 complete and 0 interrupted iterations
+default   [   7% ] 027/100 VUs  02.7s/40.0s
+
+running (0m03.7s), 037/100 VUs, 120 complete and 0 interrupted iterations
+default   [   9% ] 037/100 VUs  03.7s/40.0s
+
+running (0m04.7s), 047/100 VUs, 156 complete and 0 interrupted iterations
+default   [  12% ] 047/100 VUs  04.7s/40.0s
+
+running (0m05.7s), 057/100 VUs, 180 complete and 0 interrupted iterations
+default   [  14% ] 057/100 VUs  05.7s/40.0s
+
+running (0m06.7s), 067/100 VUs, 210 complete and 0 interrupted iterations
+default   [  17% ] 067/100 VUs  06.7s/40.0s
+
+running (0m07.7s), 077/100 VUs, 243 complete and 0 interrupted iterations
+default   [  19% ] 077/100 VUs  07.7s/40.0s
+
+running (0m08.7s), 087/100 VUs, 491 complete and 0 interrupted iterations
+default   [  22% ] 087/100 VUs  08.7s/40.0s
+
+running (0m09.7s), 096/100 VUs, 1123 complete and 0 interrupted iterations
+default   [  24% ] 096/100 VUs  09.7s/40.0s
+
+running (0m10.7s), 100/100 VUs, 1764 complete and 0 interrupted iterations
+default   [  27% ] 100/100 VUs  10.7s/40.0s
+
+running (0m11.7s), 100/100 VUs, 2503 complete and 0 interrupted iterations
+default   [  29% ] 100/100 VUs  11.7s/40.0s
+
+running (0m12.7s), 100/100 VUs, 3127 complete and 0 interrupted iterations
+default   [  32% ] 100/100 VUs  12.7s/40.0s
+
+running (0m13.7s), 100/100 VUs, 3490 complete and 0 interrupted iterations
+default   [  34% ] 100/100 VUs  13.7s/40.0s
+
+running (0m14.7s), 100/100 VUs, 3873 complete and 0 interrupted iterations
+default   [  37% ] 100/100 VUs  14.7s/40.0s
+
+running (0m15.7s), 100/100 VUs, 4585 complete and 0 interrupted iterations
+default   [  39% ] 100/100 VUs  15.7s/40.0s
+
+running (0m16.7s), 100/100 VUs, 5351 complete and 0 interrupted iterations
+default   [  42% ] 100/100 VUs  16.7s/40.0s
+
+running (0m17.7s), 100/100 VUs, 6043 complete and 0 interrupted iterations
+default   [  44% ] 100/100 VUs  17.7s/40.0s
+
+running (0m18.7s), 100/100 VUs, 6324 complete and 0 interrupted iterations
+default   [  47% ] 100/100 VUs  18.7s/40.0s
+
+running (0m19.7s), 100/100 VUs, 6724 complete and 0 interrupted iterations
+default   [  49% ] 100/100 VUs  19.7s/40.0s
+
+running (0m21.4s), 100/100 VUs, 6752 complete and 0 interrupted iterations
+default   [  53% ] 100/100 VUs  21.4s/40.0s
+
+running (0m22.3s), 100/100 VUs, 6761 complete and 0 interrupted iterations
+default   [  56% ] 100/100 VUs  22.3s/40.0s
+time="2026-11-06T20:25:11Z" level=warning msg="Request Failed" error="Post \"http://traefik/extract\": write tcp 172.18.0.10:45994->172.18.0.3:80: write: broken pipe"
+time="2026-11-06T20:25:11Z" level=warning msg="Request Failed" error="Post \"http://traefik/extract\": write tcp 172.18.0.10:33702->172.18.0.3:80: write: broken pipe"
+
+running (0m22.9s), 100/100 VUs, 6794 complete and 0 interrupted iterations
+default   [  57% ] 100/100 VUs  22.9s/40.0s
+
+running (0m23.7s), 100/100 VUs, 6880 complete and 0 interrupted iterations
+default   [  59% ] 100/100 VUs  23.7s/40.0s
+
+running (0m24.7s), 100/100 VUs, 6941 complete and 0 interrupted iterations
+default   [  62% ] 100/100 VUs  24.7s/40.0s
+time="2026-11-06T20:25:14Z" level=warning msg="Request Failed" error="Post \"http://traefik/extract\": write tcp 172.18.0.10:47410->172.18.0.3:80: write: broken pipe"
+time="2026-11-06T20:25:14Z" level=warning msg="Request Failed" error="Post \"http://traefik/extract\": write tcp 172.18.0.10:47430->172.18.0.3:80: write: broken pipe"
+
+running (0m25.7s), 100/100 VUs, 6966 complete and 0 interrupted iterations
+default   [  64% ] 100/100 VUs  25.7s/40.0s
+
+running (0m27.0s), 100/100 VUs, 7013 complete and 0 interrupted iterations
+default   [  68% ] 100/100 VUs  27.0s/40.0s
+
+running (0m27.7s), 100/100 VUs, 7054 complete and 0 interrupted iterations
+default   [  69% ] 100/100 VUs  27.7s/40.0s
+
+running (0m28.8s), 100/100 VUs, 7164 complete and 0 interrupted iterations
+default   [  72% ] 100/100 VUs  28.8s/40.0s
+
+running (0m29.7s), 100/100 VUs, 7429 complete and 0 interrupted iterations
+default   [  74% ] 100/100 VUs  29.7s/40.0s
+
+running (0m30.7s), 098/100 VUs, 7845 complete and 0 interrupted iterations
+default   [  77% ] 098/100 VUs  30.7s/40.0s
+
+running (0m31.7s), 094/100 VUs, 8465 complete and 0 interrupted iterations
+default   [  79% ] 094/100 VUs  31.7s/40.0s
+
+running (0m32.7s), 088/100 VUs, 9110 complete and 0 interrupted iterations
+default   [  82% ] 088/100 VUs  32.7s/40.0s
+
+running (0m33.7s), 083/100 VUs, 9562 complete and 0 interrupted iterations
+default   [  84% ] 083/100 VUs  33.7s/40.0s
+
+running (0m34.7s), 073/100 VUs, 9791 complete and 0 interrupted iterations
+default   [  87% ] 073/100 VUs  34.7s/40.0s
+
+running (0m35.7s), 062/100 VUs, 9830 complete and 0 interrupted iterations
+default   [  89% ] 062/100 VUs  35.7s/40.0s
+
+running (0m36.7s), 046/100 VUs, 9868 complete and 0 interrupted iterations
+default   [  92% ] 046/100 VUs  36.7s/40.0s
+
+running (0m37.7s), 037/100 VUs, 9908 complete and 0 interrupted iterations
+default   [  94% ] 037/100 VUs  37.7s/40.0s
+
+running (0m38.7s), 021/100 VUs, 9943 complete and 0 interrupted iterations
+default   [  97% ] 021/100 VUs  38.7s/40.0s
+
+running (0m39.7s), 006/100 VUs, 9989 complete and 0 interrupted iterations
+default   [  99% ] 006/100 VUs  39.7s/40.0s
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 9997   248.691359/s
+    checks_succeeded...: 8.98%  898 out of 9997
+    checks_failed......: 91.01% 9099 out of 9997
+
+    ✗ status 200
+      ↳  8% — ✓ 898 / ✗ 9099
+
+    CUSTOM
+    status_codes...................: avg=408.257977 min=0       med=429     max=429    p(90)=429      p(95)=429  
+
+    HTTP
+    http_req_duration..............: avg=278ms      min=0s      med=4.75ms  max=12.05s p(90)=66.58ms  p(95)=1.91s
+      { expected_response:true }...: avg=2.99s      min=37.93ms med=2.14s   max=12.05s p(90)=6.66s    p(95)=8.15s
+    http_req_failed................: 91.01% 9099 out of 9997
+    http_reqs......................: 9997   248.691359/s
+
+    EXECUTION
+    iteration_duration.............: avg=313.14ms   min=1.14ms  med=27.43ms max=12.64s p(90)=229.22ms p(95)=1.94s
+    iterations.....................: 9997   248.691359/s
+    vus............................: 6      min=6            max=100
+    vus_max........................: 100    min=100          max=100
+
+    NETWORK
+    data_received..................: 76 MB  1.9 MB/s
+    data_sent......................: 7.8 GB 195 MB/s
+
+
+
+
+running (0m40.2s), 000/100 VUs, 9997 complete and 0 interrupted iterations
+default ✓ [ 100% ] 000/100 VUs  40s

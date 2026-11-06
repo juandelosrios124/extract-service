@@ -1,0 +1,12 @@
+traefik_entrypoint_requests_total{code="200",entrypoint="web",method="POST",protocol="http"} 22412
+traefik_entrypoint_requests_total{code="404",entrypoint="web",method="POST",protocol="http"} 341
+traefik_entrypoint_requests_total{code="429",entrypoint="web",method="POST",protocol="http"} 147595
+traefik_entrypoint_requests_total{code="499",entrypoint="web",method="POST",protocol="http"} 80
+traefik_entrypoint_requests_total{code="503",entrypoint="web",method="POST",protocol="http"} 34
+traefik_entrypoint_requests_total{code="504",entrypoint="web",method="POST",protocol="http"} 1
+traefik_open_connections{entrypoint="traefik",protocol="TCP"} 1
+traefik_open_connections{entrypoint="web",protocol="TCP"} 0
+traefik_service_requests_total{code="200",method="POST",protocol="http",service="extract@consulcatalog"} 22221
+traefik_service_requests_total{code="499",method="POST",protocol="http",service="extract@consulcatalog"} 80
+traefik_service_requests_total{code="503",method="POST",protocol="http",service="extract@consulcatalog"} 16
+traefik_service_requests_total{code="504",method="POST",protocol="http",service="extract@consulcatalog"} 1

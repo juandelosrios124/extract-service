@@ -1,0 +1,3 @@
+{"name":"extract-cb@consulcatalog","status":"enabled","circuitBreaker":{"expression":"NetworkErrorRatio() > 1.0","checkPeriod":"100ms","fallbackDuration":"10s","recoveryDuration":"10s","responseCode":503},"retry":null,"inFlightReq":null}
+{"name":"extract-retry@consulcatalog","status":"enabled","circuitBreaker":null,"retry":{"attempts":2,"maxRequestBodyBytes":2097152},"inFlightReq":null}
+{"name":"extract-inflight@consulcatalog","status":"enabled","circuitBreaker":null,"retry":null,"inFlightReq":{"amount":80}}

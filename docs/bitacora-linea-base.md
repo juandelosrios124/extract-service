@@ -4,6 +4,10 @@ Rama `docs/1-linea-base`. Commit del código medido: `b1595c9`.
 Esta bitácora junta lo que se midió y lo que se concluyó, para armar después el informe.
 Todo lo marcado como **hipótesis** todavía no está confirmado.
 
+> **Histórico.** Las secciones que siguen, hasta «Re-medición detrás de Traefik (issue #38)»,
+> son de `v1.0` y anteriores: Caddy, Windows (Docker Desktop y WSL2), una corrida por prueba.
+> Se conservan tal cual. Las mediciones vigentes están en la sección de la #38, al final.
+
 ## Entorno
 
 - Equipo: notebook con AMD Ryzen 3 4300U (4 núcleos / 4 hilos), 6,9 GB de RAM (0,8 a 0,9 GB libres con todo cerrado).
@@ -134,3 +138,106 @@ Lectura (hipótesis, sin confirmar):
 - [ ] Repetir k6 y Vegeta con el protocolo definitivo (réplicas `healthy`, 1 minuto de reposo, 2 minutos entre corridas).
 - [ ] Conseguir los PDFs oficiales y repetir las mediciones finales con ellos.
 - [ ] Ver el `Error Set` de `perf4-vegeta-50` y repetir 8 req/s sin `03.pdf` para comprobar la hipótesis de los PDFs pesados.
+
+## Re-medición detrás de Traefik (issue #38)
+
+Rama `docs/38-re-medicion`, 2026-11-06. Imagen medida: extract
+`ghcr.io/juandelosrios124/extract-service:sha-ec5b762`
+(`sha256:79793696c0f6ae7459a0fbdac7a062a2fa0e020113bbfa91271f4da5b1b1fbe6`, revision `ec5b762`)
+en las 19 corridas; documents `sha-3ef65f2`
+(`sha256:5e94251bdd5f482624e4f2bf1b1f0414ce0b81dc9ccc4730a1818cc9b449e560`).
+Resultados en `tests/stress/results/38/2026-11-06/` (resumen en `resumen.md`).
+
+### Entorno
+
+- La misma notebook (Lenovo 81W3, Ryzen 3 4300U, 4 núcleos y 4 hilos), ahora con CachyOS:
+  kernel `7.3.1-1-cachyos`, Docker Engine 29.9.2 con cgroup v2, 6,6 GiB visibles, enchufada.
+- Topes de CPU: 5 × 1,0 (extract) + 0,5 (Traefik) + 1,0 (documents) + 0,5 (Mongo) = 7,0 sobre
+  4 núcleos, más Consul y el generador, sin tope.
+- Herramientas en contenedor dentro de `mired`: `peterevans/vegeta:6.9.1-vegeta12.8.4` y
+  `grafana/k6:2.2.0`, con digest (ver `run-38.sh`). Scripts de la cátedra sin cambios; k6 con
+  `TIMEOUT=30s`.
+
+### Comprobaciones antes de medir (pedidos de prueba con 1 réplica)
+
+- `503` por cupo: `OriginStatus` 503, body de 66 B; en extract, solo la línea de acceso.
+- `503` por cola: `OriginStatus` 503, body de 70 B.
+- `503` por deadline: `OriginStatus` 503 y `WARNING ... stopped by deadline` con `request_id`.
+- `503` del CB abierto (expresión forzada): `OriginStatus` 0, sin `ServiceURL` ni
+  `ServiceName`, body `Service Unavailable`; cuenta en `traefik_entrypoint_requests_total`
+  pero no en `traefik_service_requests_total` (18 − 8 = 10, exacto).
+- `429` del inflight: `OriginStatus` 0, body `max connections reached: N`; solo en el entrypoint.
+- `504`: un PDF sintético de 4000 páginas con 0,25 CPU y sin deadline. `OriginStatus` 504,
+  `OriginDuration` 25,0 s, body `Gateway Timeout`, `RetryAttempts` 0; extract terminó después
+  y logueó un `200` que el cliente no recibió.
+- `404`: en una ráfaga contra una réplica de 0,5 CPU, Traefik la sacó de la rotación a mitad
+  de camino (hipótesis: venció el check de readiness de Consul, de 2 s) y respondió `404`.
+- `NetworkErrorRatio() > 1` **no es válida** en Traefik v3.7.17: el router queda `disabled`
+  con `expected int, got int` y todo da `404`. Con `> 1.0` funciona.
+- El retry (2 intentos) no reintenta `POST`: la API de Traefik lo muestra sin
+  `retryNonIdempotentMethod` y `RetryAttempts` dio 0 en todas las pruebas.
+- Durante el recreate, Traefik muestra un momento las réplicas viejas: contar servidores no
+  alcanza para saber si ya rutea las nuevas (se compara con las IPs de los contenedores).
+
+### Corridas cortas de validación
+
+Vegeta 10 s por configuración (reposo de 20 s) y una de k6 en C, en
+`tests/stress/results/38/prueba-2026-11-06/` (no versionadas). Éxito: A 83,00 %, C 84,00 %,
+C+CB 85,20 %; único no-`200`: `429`. k6: 976 `200`, 13.876 `429` y 3 `503` por cupo, iguales
+en las cuatro fuentes. Ahí apareció el bucle de `429` de k6 (modelo cerrado sin pausas, 100
+usuarios contra un tope de 80).
+
+### Matriz (3 rondas, A, C y C+CB, Vegeta y k6 alternados)
+
+Datos crudos resumidos por corrida (de los `desglose.json`). El motivo de cada no-`200` sale
+del access log de Traefik; el código 0 sale del cliente. En la corrida 04, k6 vio 4 de los
+`429` como código 0 (`broken pipe`: Traefik respondió y cerró mientras k6 subía el PDF); acá
+cuentan como `429`, como en Traefik.
+
+| Corrida | Inicio (UTC) | Pedidos | `200` | `429` | `503` cupo / cola / deadline | `503` CB | `504` | `404` | Código 0: timeout / conexión | Éxito | `200`/s | P50 / P95 de los `200` (s) | Fuentes cierran |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 01-A-vegeta | 20:19:08 | 1500 | 1156 | 344 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 77,07 % | 35,24 | 1,78 / 4,11 | sí |
+| 02-C-vegeta | 20:21:00 | 1500 | 1146 | 354 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 76,40 % | 35,72 | 1,78 / 4,28 | sí |
+| 03-C+CB-vegeta | 20:22:53 | 1500 | 1146 | 352 | 2 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 76,40 % | 35,31 | 1,38 / 5,02 | sí |
+| 04-A-k6 | 20:24:48 | 9997 | 898 | 9099 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 8,98 % | 22,34 | 2,14 / 8,15 | sí |
+| 05-C-k6 | 20:26:50 | 14809 | 1063 | 13746 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 7,18 % | 26,57 | 2,54 / 5,44 | sí |
+| 06-C+CB-k6 | 20:28:52 | 15065 | 1012 | 14053 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 6,72 % | 25,17 | 2,71 / 4,75 | sí |
+| 07-A-k6 | 20:30:56 | 16191 | 981 | 15210 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 6,06 % | 24,46 | 2,60 / 5,86 | sí |
+| 08-C-k6 | 20:33:01 | 16256 | 1035 | 15221 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 6,37 % | 25,81 | 2,40 / 5,10 | sí |
+| 09-C+CB-k6 | 20:35:08 | 15176 | 1067 | 14105 | 4 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 7,03 % | 26,68 | 2,13 / 5,46 | sí |
+| 10-A-vegeta | 20:37:14 | 1500 | 1203 | 297 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 80,20 % | 36,88 | 1,62 / 5,02 | sí |
+| 11-C-vegeta | 20:39:10 | 1500 | 1194 | 306 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 79,60 % | 36,28 | 1,81 / 3,89 | sí |
+| 12-C+CB-vegeta | 20:41:07 | 1500 | 1197 | 303 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 79,80 % | 36,26 | 1,50 / 4,52 | sí |
+| 13-A-vegeta | 20:43:04 | 1500 | 1208 | 292 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 80,53 % | 37,58 | 1,87 / 3,31 | sí |
+| 14-C-vegeta | 20:44:55 | 1500 | 1194 | 306 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 79,60 % | 36,69 | 1,57 / 3,99 | sí |
+| 15-C+CB-vegeta | 20:46:48 | 1500 | 1178 | 322 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 78,53 % | 36,35 | 1,51 / 4,60 | sí |
+| 16-A-k6 | 20:59:17 | 15953 | 893 | 15060 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 5,60 % | 22,10 | 2,67 / 6,50 | sí |
+| 17-C-k6 | 21:01:22 | 14414 | 934 | 13473 | 7 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 6,48 % | 23,35 | 2,48 / 6,48 | sí |
+| 18-C+CB-k6 | 21:03:27 | 15717 | 1031 | 14686 | 0 / 0 / 0 | 0 | 0 | 0 | 0 / 0 | 6,56 % | 25,46 | 2,08 / 5,71 | sí |
+
+- Corrida 16 original (A/k6): cortada a las 17:49 (−03) por falta de memoria del sistema, apenas
+  empezada la carga. Descartada (`results/38/2026-11-06-descartadas/`). Las 16 a 18 se
+  corrieron unos 10 minutos después, en primer plano.
+- En las 18 corridas: 0 reintentos, 0 líneas de aviso en el log de Traefik (el CB nunca abrió),
+  0 `200` tardíos en extract.
+- `docker stats`: extract promedió 51,5 % de CPU por réplica (máximo 102,9 %); Traefik, 16,7 %
+  en Vegeta y 29,2 % en k6, y en k6 llegó a su tope de 0,5 CPU en 51 de 191 muestras.
+
+### Camino real: `POST /documents`
+
+Corrida 19 (C+CB), documents sobre `documents_bench` (antes: 0 documentos; después: 596).
+1.600 variantes únicas de los 4 PDFs (actualización incremental de la metadata, mismas páginas
+y mismo texto extraído que los originales). Vegeta 50 req/s, 30 s, `-lazy`.
+
+| Respuesta | Pedidos |
+|---|---|
+| `201` creados | 596 |
+| `200` duplicate | 0 |
+| `503` admisión de documents | 904 |
+| `503`/`504` de extract | 0 |
+| Código 0 | 0 |
+
+Los 596 `201` se cruzan uno a uno (por `X-Request-ID`) con 596 `/extract` internos con `200`;
+los 904 `503` no llamaron a extract. 18,57 `201`/s; P50 / P95 de los `201`: 2,19 / 2,55 s.
+Todas las fuentes cierran (cliente, access log, `/metrics`, log de documents con 596
+«Documento almacenado» y log de extract).

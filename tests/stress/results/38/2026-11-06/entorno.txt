@@ -1,0 +1,20 @@
+# Entorno de la matriz de la #38 (capturado el 2026-11-06T21:19:12Z, mismo equipo y sistema que las corridas)
+## equipo
+LENOVO
+81W3
+model name	: AMD Ryzen 3 4300U with Radeon Graphics
+nproc: 4
+               total       usado       libre  compartido   búf/caché  disponible
+Mem:           6,6Gi       2,2Gi       2,2Gi        26Mi       2,6Gi       4,5Gi
+## sistema
+PRETTY_NAME="CachyOS"
+7.3.1-1-cachyos
+governor: schedutil
+## docker
+client 29.9.2 server 29.9.2
+NCPU=4 MemTotal=7116820480 cgroup=2
+## herramientas
+peterevans/vegeta@sha256:eb65f499cd1b0f1402a56794d7711c49121db6ff8ea7d878513d76601ee0d502 [VEGETA_VERSION=12.8.4]
+k6 v2.2.0 (commit/00a9a1b7f5, go1.26.5, linux/amd64)
+## traefik
+traefik:v3.7.17@sha256:68ae5fe5b64ca166704b746a9e8afcd385e36b3f569a5691401bf652d57b3748 cpus=500000000

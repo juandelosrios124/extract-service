@@ -1,0 +1,189 @@
+{
+  "corrida": "07-A-k6",
+  "config": "A",
+  "herramienta": "k6",
+  "imagen": "sha-ec5b762",
+  "inicio": "2026-11-06T20:30:56.624277605Z",
+  "fin": "2026-11-06T20:31:39.783881859Z",
+  "cliente": {
+    "solicitudes": 16191,
+    "exito_pct": 6.0589216231239575,
+    "req_s_todas": 404.14330141816924,
+    "throughput_efectivo": 24.463840399002493,
+    "duracion_s": 40.1,
+    "p50_s": 0.007990826,
+    "p95_s": 0.8439224125000001,
+    "p50_200_s": 2.5960410670000003,
+    "p95_200_s": 5.857497186
+  },
+  "desglose": {
+    "200": 981,
+    "503_cupo": 0,
+    "503_cola": 0,
+    "503_deadline": 0,
+    "503_extract_otro": 0,
+    "503_cb": 0,
+    "429_inflight": 15210,
+    "504_traefik": 0,
+    "504_otro": 0,
+    "404_sin_ruta": 0,
+    "0_timeout_cliente": 0,
+    "0_conexion": 0,
+    "otros": 0
+  },
+  "fuentes": {
+    "cliente": {
+      "200": 981,
+      "429_inflight": 15210
+    },
+    "traefik": {
+      "200": 981,
+      "429_inflight": 15210
+    },
+    "traefik_downstream_web": {
+      "200": 981,
+      "429": 15210
+    },
+    "traefik_retry_attempts": 0,
+    "traefik_otros_paths": {},
+    "metrics_entrypoint_web_post": {
+      "200": 981,
+      "429": 15210
+    },
+    "metrics_service_extract_post": {
+      "200": 981
+    },
+    "extract_log_post": {
+      "200": 981
+    },
+    "extract_log_deadlines": 0
+  },
+  "controles": [
+    {
+      "control": "pedidos: cliente (sin los que Traefik nunca vio) vs access log",
+      "a": 16191,
+      "b": 16191,
+      "cierra": true,
+      "nota": "un timeout del cliente aparece en Traefik con el código que terminó"
+    },
+    {
+      "control": "200: cliente vs access log",
+      "a": 981,
+      "b": 981,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "200: access log (entrypoint web) vs metrics entrypoint",
+      "a": 981,
+      "b": 981,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "429: access log (entrypoint web) vs metrics entrypoint",
+      "a": 15210,
+      "b": 15210,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "503: access log (entrypoint web) vs metrics entrypoint",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "504: access log (entrypoint web) vs metrics entrypoint",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "404: access log (entrypoint web) vs metrics entrypoint",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "200: access log con upstream vs metrics service",
+      "a": 981,
+      "b": 981,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "503: access log con upstream vs metrics service",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "504: access log con upstream vs metrics service",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "503 del CB: access log vs metrics (entrypoint − service)",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "503 de extract: access log vs log de extract",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "503 por deadline: access log vs WARNING en extract",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "200 tardíos (log de extract − access log)",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": "a ≤ b: cada 200 tardío corresponde a un 504 o a un timeout"
+    },
+    {
+      "control": "503: k6 vs access log",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "429_inflight: k6 (+ código 0 que Traefik vio) vs access log",
+      "a": 15210,
+      "b": 15210,
+      "cierra": true,
+      "nota": "0 broken pipe: Traefik respondió 429 mientras k6 subía el body"
+    },
+    {
+      "control": "504_traefik: k6 vs access log",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    },
+    {
+      "control": "404_sin_ruta: k6 vs access log",
+      "a": 0,
+      "b": 0,
+      "cierra": true,
+      "nota": ""
+    }
+  ]
+}
