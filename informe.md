@@ -66,7 +66,7 @@ flowchart LR
   end
 ```
 
-Cada réplica es un proceso de FastAPI sin estado que se registra en Consul con su readiness como check y con los tags que le dicen a Traefik cómo publicarla (router, middlewares y service). Traefik solo rutea a las réplicas `passing` y, antes de llegar a una, aplica tres middlewares: el circuit breaker, el retry (que no actúa sobre `POST`, ver §5.3) y el límite de 80 pedidos en vuelo, que responde `429`. Si una réplica no manda los headers de respuesta en 25 s, Traefik responde `504`. El orden de un pedido dentro de la réplica es:
+Cada réplica es un proceso de FastAPI sin estado que se registra en Consul con su readiness como check y con los tags que le dicen a Traefik cómo publicarla (router, middlewares y service). Traefik solo rutea a las réplicas `passing` y, antes de llegar a una, aplica tres middlewares: el circuit breaker, el retry (que reintenta solo ante un error de red antes de mandarle el pedido a la réplica, también en `POST`; ver §5.3) y el límite de 80 pedidos en vuelo, que responde `429` y desde la #55 es un único tope para todos los clientes. Si una réplica no manda los headers de respuesta en 25 s, Traefik responde `504`. El orden de un pedido dentro de la réplica es:
 
 1. **Admisión:** toma un cupo (máximo `MAX_CONCURRENT_UPLOADS`). Si no hay, espera hasta `UPLOAD_SLOT_TIMEOUT` **sin leer el cuerpo** y después responde `503`.
 2. **Lectura en memoria** con límite de tamaño en streaming (`MAX_UPLOAD_SIZE`, 50 MiB).
@@ -190,7 +190,7 @@ Otras mediciones del proceso:
 | Circuit breaker | Traefik, `extract-cb` | `NetworkErrorRatio() > 0.30 \|\| ResponseCodeRatio(500, 503, 0, 600) > 0.50` | no existía | `503` sin llamar a las réplicas mientras está abierto |
 | Espera de headers | Traefik, `responseHeaderTimeout` | 25 s | no existía | `504` |
 
-Los tiempos de extract (5 + 15 + 8 s, issue #34) suman los 23 s que le tocan en el presupuesto de timeouts de punta a punta (cliente 30 s > documents 27 s > Traefik 25 s > extract 23 s). El retry de Traefik (2 intentos) está configurado, pero **no actúa sobre `POST /extract`**: Traefik v3 no reintenta métodos no idempotentes salvo con `retryNonIdempotentMethod`, que no está activado. En las 19 corridas de la #38, `RetryAttempts` fue 0 y `traefik_service_retries_total` no apareció.
+Los tiempos de extract (5 + 15 + 8 s, issue #34) suman los 23 s que le tocan en el presupuesto de timeouts de punta a punta (cliente 30 s > documents 27 s > Traefik 25 s > extract 23 s). El retry de Traefik (2 intentos) **sí actúa sobre `POST /extract`**, pero solo ante un error de red antes de mandarle el pedido a la réplica (por ejemplo, el dial a una réplica caída). Ese camino no mira el método, y el body se reenvía sin guardarlo en memoria. `retryNonIdempotentMethod` solo habilita el retry por status, que no se usa. No reintenta respuestas ni el `504` por `responseHeaderTimeout`, así que el presupuesto de timeouts se mantiene. Esto corrige lo que decía este informe hasta la #55, que el retry no actuaba sobre `POST`. Esa conclusión salía de que `RetryAttempts` fue 0 y `traefik_service_retries_total` no apareció en las 19 corridas, pero en Traefik v3.7.17 un retry declarado como middleware no informa sus reintentos en ninguno de los dos. Lo que sí vale es que **las mediciones de la #38 (`sha-ec5b762`) se hicieron sin reintentos**: no hubo ni un `502`/`504`, es decir, ningún error de red que reintentar. La configuración del retry no cambió y no se re-midió.
 
 **Criterio de los valores** (razonamiento, no una búsqueda exhaustiva):
 - En v1.0, los 15 s y 20 s dejaban margen frente al timeout de 30 s del cliente: un pedido admitido conserva al menos 10 a 15 s para subir y extraer.
@@ -307,7 +307,8 @@ Los 596 `201` corresponden, uno a uno por `X-Request-ID`, a 596 `/extract` inter
   - **Los timeouts del cliente en el access log de Traefik:** no hubo ninguno en las 19 corridas, así que no se verificó cómo los registra.
   - **El motivo de los `503` desde el cliente k6:** su script no guarda el body. El motivo sale del access log de Traefik (tamaño del body) y del log de extract; las fuentes cierran, pero k6 solo no alcanza.
 - **k6 de la cátedra contra el inflight.** Al ser de modelo cerrado y sin pausas, los usuarios que superan el tope de 80 entran en un bucle de `429`: la tasa de error (~93 %) y los pedidos por segundo (de ~350 a ~380 según la configuración) de k6 miden ese bucle y no a extract. Durante esas corridas, Traefik llegó a su tope de 0,5 CPU en el 27 % de las muestras (51 de 191).
-- **Retry inactivo para POST:** el middleware de retry está configurado con 2 intentos, pero Traefik no reintenta `POST` sin `retryNonIdempotentMethod`. Nada de lo medido incluye reintentos.
+- **Sin reintentos en lo medido:** el retry reintenta `POST` ante un error de red antes de mandar el pedido (corregido en la #55, ver §5.3), pero en las corridas de la #38 (`sha-ec5b762`) no hubo ningún error de red, así que nada de lo medido incluye reintentos. Además, Traefik v3.7.17 no informa los reintentos de este middleware en el access log ni en `/metrics`: un reintento solo se reconoce por la duración del pedido.
+- **Tope de pedidos en vuelo por `Host`:** en la #38, el inflight de Traefik agrupaba por el header `Host` (el default). Cada herramienta usó un solo `Host` (`traefik`), así que en cada corrida el tope fue uno solo y los números valen. Desde la #55 se agrupa por `X-Forwarded-Server`, que Traefik reescribe con su hostname: un único tope para todos los clientes. No se re-midió.
 - **Un solo valor probado** de `MAX_CONCURRENT_UPLOADS` (8), de `UPLOAD_SLOT_TIMEOUT` (5 s) y del inflight (80).
 - **Generador de carga en la misma máquina** que el servicio, con 6,6 GiB visibles de RAM y la CPU sobresuscrita por diseño (7,0 CPU de topes sobre 4 núcleos, §4).
 - **Herramientas:** Vegeta 12.8.4 en contenedor en la #38 contra 12.13.0 nativo en v1.0; k6 2.2.0 en las dos, pero ahora en contenedor y con `TIMEOUT=30s`.
@@ -326,7 +327,7 @@ Trabajo futuro:
 - Aislar el efecto de los cupos de extract midiendo A contra C con un inflight mayor o sin él, y afinar `MAX_CONCURRENT_UPLOADS` y `UPLOAD_SLOT_TIMEOUT`.
 - Más corridas por configuración y el orden aleatorizado, para separar la configuración de la posición en el bloque (§5.3).
 - Una carga que produzca `502`/`504`, para evaluar el circuit breaker.
-- Decidir si el retry de Traefik tiene que aplicar a `POST` (hoy no actúa) y, si es así, activarlo con `retryNonIdempotentMethod`.
+- Medir el failover (una réplica caída bajo la carga de la cátedra) con varias corridas. Hoy solo hay la prueba de humo de la #55, y los reintentos se cuentan por duración porque Traefik v3.7.17 no los informa.
 - Revisar la admisión de documents (réplicas o cupos), que es el primer límite del camino real.
 - Aislar con A/B propios el efecto de `THREAD_POOL_SIZE` y evaluar un pool de procesos y menos de 5 réplicas cuando el equipo tiene menos de 5 núcleos.
 - Devolver `content` en Markdown liviano, midiendo su costo.
