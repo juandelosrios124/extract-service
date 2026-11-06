@@ -8,5 +8,6 @@ tests/
 .git/
 proxy/
 docker-compose.yml
+docker-compose.override.yml
 .gitignore
 .gitattributes
