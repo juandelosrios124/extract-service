@@ -22,6 +22,8 @@ docker network create mired
 docker compose up --build -d --wait
 ```
 
+Así se compila la imagen en la máquina (desarrollo, lo mismo que hace `make up` de infra). Para correr la imagen que publica la CI, sin compilar, ver [Imagen y releases](#imagen-y-releases-12-factor-v).
+
 Levanta **5 réplicas** (1,0 CPU y 1 GiB cada una). Este compose **no publica ningún puerto**: el punto de entrada es **Traefik**, que vive en el repo de [infra](https://github.com/juandelosrios124/pdf_extractext-infra) y descubre las réplicas por el catálogo de Consul. Hay que levantarlo ahí:
 
 ```bash
@@ -76,6 +78,7 @@ Todo se configura por variables de entorno (Twelve-Factor). Los valores por defe
 | `EXTRACT_MAX_UPLOAD_SIZE` | `52428800` | 50 MiB; el cuerpo se corta apenas se supera |
 | `EXTRACT_LOG_LEVEL` | `INFO` | Logs a stdout |
 | `EXTRACT_LOG_FORMAT` | `json` | `json` emite un objeto por línea con `request_id`, para recolectores de logs; `text` queda legible en una terminal. El default del código es `text` |
+| `EXTRACT_IMAGE_TAG` | `latest` | Solo para `docker compose -f docker-compose.yml`: tag de `ghcr.io/juandelosrios124/extract-service` que se corre. Vacío o `latest` en desarrollo; `sha-xxxxxxx` o `vX.Y.Z` para una release o una medición reproducible. Con el override (desarrollo, `make up`) no se usa. Ver [Imagen y releases](#imagen-y-releases-12-factor-v) |
 | `SHARED_NETWORK` | `mired` | Nombre de la red externa compartida con Consul y documents-service. Es la misma variable en los tres repos: si se cambia, hay que cambiarla en todos |
 | `CONSUL_ENABLED` | `true` | Autorregistro en Consul, que es cómo Traefik descubre las réplicas (#32). En `false` el servicio funciona igual, pero queda sin publicar |
 | `CONSUL_HTTP_ADDR` | `http://consul:8500` | Agente de Consul, visto desde `mired` |
@@ -92,6 +95,38 @@ EXTRACT_MAX_CONCURRENT_UPLOADS=0 EXTRACT_MAX_QUEUE_WAIT=1000 docker compose up -
 ```
 
 En PowerShell: `$env:EXTRACT_MAX_CONCURRENT_UPLOADS="0"; $env:EXTRACT_MAX_QUEUE_WAIT="1000"; docker compose up -d --force-recreate --wait`.
+
+## Imagen y releases (12-Factor V)
+
+La imagen se construye **una sola vez por commit**, en la CI, y se publica en GHCR: `ghcr.io/juandelosrios124/extract-service`. Desplegar no compila: una **release es una imagen con tag + el `.env`** de la máquina. Dos máquinas con el mismo tag corren exactamente el mismo binario, y volver atrás es cambiar el tag.
+
+**Qué publica la CI y cuándo** (job `image` de `.github/workflows/ci.yml`, que corre solo si pasó `check`: lint, tests, compose y auditoría):
+
+| Evento | ¿Publica? | Tags |
+|---|---|---|
+| Pull request | No: construye para validar el Dockerfile | — |
+| Push a `main` | Sí | `sha-<7 caracteres del commit>` y `latest` |
+| Tag de git `vX.Y.Z` | Sí | `sha-<corto>`, `X.Y.Z` y `X.Y` (no `latest`: es solo de `main`) |
+
+Es un solo build por corrida: todos los tags apuntan al mismo digest. La imagen lleva los labels OCI `org.opencontainers.image.source` (vincula el paquete con este repo), `org.opencontainers.image.revision` (el commit) y `org.opencontainers.image.created`.
+
+**Levantar una versión exacta sin compilar.** Con `-f docker-compose.yml`, Compose no lee el override: no hay `build`, solo la imagen de GHCR.
+
+```bash
+EXTRACT_IMAGE_TAG=sha-xxxxxxx docker compose -f docker-compose.yml up -d --wait
+# Qué commit está corriendo
+docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' \
+  ghcr.io/juandelosrios124/extract-service:sha-xxxxxxx
+# El digest, que identifica la imagen aunque el tag se mueva
+docker image inspect --format '{{index .RepoDigests 0}}' \
+  ghcr.io/juandelosrios124/extract-service:sha-xxxxxxx
+```
+
+`EXTRACT_IMAGE_TAG` también puede ir en el `.env`. Vacío o `latest` es lo último de `main`; para una release o una medición reproducible, un `sha-xxxxxxx` o un `vX.Y.Z`, que no cambian. Compose baja la imagen solo si no la tiene (no hay `pull_policy`): con un tag inmutable alcanza, pero `latest` hay que refrescarlo a mano con `docker compose -f docker-compose.yml pull extract`.
+
+**El desarrollo sigue compilando.** `docker-compose.override.yml` está versionado y Compose lo lee solo cuando no se pasa `-f`: lo usan `docker compose up --build` y `make up` de infra. Agrega `build: .` y etiqueta el resultado como `extract-service:dev`, un nombre local distinto del de GHCR a propósito: si el build local se llamara `ghcr.io/juandelosrios124/extract-service:latest`, taparía la imagen publicada y un `-f docker-compose.yml up` posterior correría lo compilado en la máquina sin avisar. Sin `-f`, Compose **siempre** lee el override: el modo release es solo con `-f docker-compose.yml`.
+
+**Visibilidad del paquete.** GitHub crea el paquete privado en la primera publicación ([Working with the Container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#pushing-container-images)), aunque el repo sea público. Hacerlo público es un paso manual, una sola vez, del dueño: en github.com/juandelosrios124 → *Packages* → `extract-service` → *Package settings* → *Danger Zone* → *Change visibility* → *Public* ([Configuring a package's access control and visibility](https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility)). Mientras siga privado, para bajarlo hace falta `docker login ghcr.io` con un usuario que tenga acceso al paquete y un token con `read:packages`.
 
 ## Red compartida
 
@@ -306,7 +341,8 @@ tests/                tests unitarios
 tests/stress/         PDFs oficiales, scripts de k6 y Vegeta, resultados
 informe.md            informe técnico
 docs/                 bitácora de mediciones
-docker-compose.yml    5 réplicas con límites de recursos, en la red mired
+docker-compose.yml    5 réplicas con límites de recursos, en la red mired, con la imagen de GHCR
+docker-compose.override.yml  build local para desarrollo (extract-service:dev)
 ```
 
 ## Metodología
