@@ -25,12 +25,16 @@ En la prueba de carga fija de la cátedra (Vegeta, 50 req/s durante 30 s, timeou
 | Respuestas `503` controladas | | | | **96** |
 | Latencia P50 | 14,89 s | 21,9 a 29,5 s | N/D | N/D |
 | Latencia P95 | n/d | _N/D | N/D |N/D |
+| Imagen | — | compilada desde git | compilada desde git | compilada desde git |
 
 | Métrica (k6, spike de 100 usuarios) | Cátedra | A | C |
 |---|---|---|---|
 | Throughput | 25,35 req/s | N/D | 8.30 req/s |
 | Tasa de error | 0 % | N/D | 0.29 %|
 | Mediana / P95 | 1,88 s / 8,80 s | N/D | 8.85 s / 22.20 s |
+| Imagen | — | — | compilada desde git |
+
+La fila «Imagen» registra qué binario se midió (ver §4). Estas mediciones se hicieron compilando la imagen desde git con `docker compose up --build`, antes de que la CI publicara imágenes (#40): no quedó tag ni digest. Las de la #38 van a anotar el `sha-xxxxxxx` y el digest.
 
 Cantidad de corridas por configuración:1 corrida (prueba exprés de una sola pasada por limitaciones de tiempo). Ver los límites de la comparación en la sección 8.
 
@@ -86,6 +90,14 @@ Cada réplica es un proceso de FastAPI sin estado. El orden de un pedido es:
 | Filosofía Lean | 0,67 MB | 42 | ~0,11 s |
 | Scrum Manager (historias de usuario) | 3,83 MB | 62 | ~0,11 s |
 
+- **Imagen medida (desde la #40):** cada medición corre una imagen publicada por la CI, no un build local, y se anota en la fila «Imagen» de las tablas. Se fija con el tag del commit y el compose base, que no compila:
+
+  ```bash
+  EXTRACT_IMAGE_TAG=sha-xxxxxxx docker compose -f docker-compose.yml up -d --force-recreate --wait
+  docker image inspect --format '{{index .RepoDigests 0}}' ghcr.io/juandelosrios124/extract-service:sha-xxxxxxx
+  ```
+
+  Se registran el tag (`sha-xxxxxxx` o `vX.Y.Z`) y el digest (`ghcr.io/...@sha256:...`): el digest identifica el binario aunque un tag se mueva. Sin `-f docker-compose.yml`, Compose lee el override y compila en la máquina, y esa corrida ya no es reproducible. Las mediciones anteriores a la #40 se hicieron compilando desde git (`docker compose up --build`) y no tienen tag ni digest.
 - **Protocolo:** cuerpo binario (como los scripts de la cátedra), red interna de Docker (sin el reenvío de puertos de Windows), réplicas recreadas con 60 s de espera antes de cada corrida, cargador conectado y programas pesados cerrados. Se registran las métricas de Vegeta, las respuestas `200` y `503` de los logs del servidor y el resultado por archivo.
 
 ## 5. Evaluación de las decisiones
@@ -151,6 +163,7 @@ Otras mediciones del proceso:
 | Timeouts de cliente | 465 | 262 | −203 |
 | `503` controlados | 0 | 96 | +96 |
 | Pedidos fallidos (total) | ~465 | 358 | −107 |
+| Imagen | compilada desde git | compilada desde git | — |
 
 **Lectura.** Los fallos totales bajan de ~465 a 358 y se transforman: 203 timeouts menos y 96 `503` rápidos. El servicio rechaza pronto lo que no puede atender y completa más del resto. Para Vegeta un `503` cuenta como fallo, de modo que la ganancia proviene de **no gastar capacidad en pedidos que iban a expirar** (hipótesis coherente con las respuestas desperdiciadas de la línea base). Además, el límite evita acumular cuerpos grandes en memoria, que fue el origen de varios incidentes del proceso (agotamiento de la memoria de la máquina virtual de Docker).
 
@@ -190,6 +203,7 @@ No son el cuello de botella: la librería de extracción (las alternativas no su
 | Throughput efectivo (Vegeta) | 16,65 req/s | 20,06 req/s | +20 % |
 | Timeouts (Vegeta) | 501 | 262 | −48 % |
 | k6: throughput, error, latencias | 25,35 req/s, 0 %, P95 8,80 s | 8.30 req/s, 0.29 %, P95 22.20 s | -67 % req/s (Menor rendimiento absoluto, pero con un 99.7% de resiliencia y éxito frente a la asfixia)|
+| Imagen | — | compilada desde git | — |
 
 Las cifras de la cátedra provienen de un equipo cuyo hardware no conocemos; la comparación es indicativa.
 
@@ -224,6 +238,13 @@ docker run --rm --network extract-service_default -v "$PWD/tests/stress:/stress"
 
 # k6, script de la cátedra adaptado
 k6 run tests/stress/profesor/spike_tests.js
+```
+
+Así se reproducen las mediciones anteriores a la #40, compilando desde git. Las posteriores corren la imagen exacta que se midió, sin compilar, con el tag anotado en la fila «Imagen» (ver §4):
+
+```bash
+EXTRACT_IMAGE_TAG=sha-xxxxxxx docker compose -f docker-compose.yml up -d --wait
+docker image inspect --format '{{index .RepoDigests 0}}' ghcr.io/juandelosrios124/extract-service:sha-xxxxxxx
 ```
 
 Para reproducir la configuración A, levantar con `EXTRACT_MAX_CONCURRENT_UPLOADS=0` y `EXTRACT_MAX_QUEUE_WAIT=1000`. Los datos crudos de las mediciones están en `docs/bitacora-linea-base.md`.
