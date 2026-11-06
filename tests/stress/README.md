@@ -1,8 +1,9 @@
 # Pruebas de carga
 
-Dos pruebas contra `POST /extract` de `extract-service`, a través del reverse proxy
-(`http://localhost:8001`). Las dos usan los mismos 4 PDFs de [`pdfs/`](pdfs/README.md) y
-los envían como `multipart/form-data` (campo `file`).
+Dos pruebas contra `POST /extract` de `extract-service`, a través de **Traefik**
+(`http://127.0.0.1:8080`), que es el mismo camino que usa `documents-service`. Las dos
+usan los mismos 4 PDFs de [`pdfs/`](pdfs/README.md) y los envían como
+`multipart/form-data` (campo `file`).
 
 | Prueba | Herramienta | Modelo | Perfil | Reporta |
 |---|---|---|---|---|
@@ -12,11 +13,23 @@ los envían como `multipart/form-data` (campo `file`).
 ## Antes de correr
 
 1. Poner los 4 PDFs en `tests/stress/pdfs/` (ver [pdfs/README.md](pdfs/README.md)).
-2. Levantar el servicio con las réplicas y el proxy, desde la raíz del repo:
+2. Levantar **Consul y Traefik**, desde el repo de
+   [infra](https://github.com/juandelosrios124/pdf_extractext-infra). Desde la #33 este
+   repo no publica ningún puerto: sin Traefik no hay por dónde entrar.
 
    ```bash
-   docker compose up --build -d extract proxy
+   docker compose up -d --wait        # en pdf_extractext-infra
    ```
+
+3. Levantar las réplicas, desde la raíz de este repo:
+
+   ```bash
+   docker compose up --build -d --wait
+   ```
+
+Antes de medir, comprobar que Traefik ya ve las 5 réplicas: en
+<http://127.0.0.1:8081/api/http/services> tiene que aparecer `extract@consulcatalog`
+con 5 servidores.
 
 Los comandos de abajo se corren desde la raíz del repo. Los resultados quedan en
 `tests/stress/results/`, que no se commitea.
@@ -26,9 +39,9 @@ Los comandos de abajo se corren desde la raíz del repo. Los resultados quedan e
 Con Docker (no hace falta instalar k6):
 
 ```bash
-docker run --rm \
+docker run --rm --network mired \
   -v "$PWD/tests/stress:/stress" \
-  -e BASE_URL=http://host.docker.internal:8001 \
+  -e BASE_URL=http://traefik \
   -e SUMMARY_JSON=/stress/results/k6-spike.json \
   grafana/k6 run /stress/k6/spike.js
 ```
@@ -60,16 +73,17 @@ La tasa de error cuenta toda respuesta que no sea 2xx/3xx, incluidos los timeout
 Con Docker (la imagen trae `vegeta`, `sh` y `jq`):
 
 ```bash
-docker run --rm \
+docker run --rm --network mired \
   -v "$PWD/tests/stress:/stress" \
-  -e BASE_URL=http://host.docker.internal:8001 \
   --entrypoint sh peterevans/vegeta /stress/vegeta/attack.sh
 ```
 
-Con `vegeta` y `jq` instalados:
+No hace falta pasar `BASE_URL`: el default del script es `http://traefik`, que es como se
+llama Traefik dentro de `mired`. Con `vegeta` y `jq` instalados en el host hay que
+apuntarlo al puerto publicado:
 
 ```bash
-sh tests/stress/vegeta/attack.sh
+BASE_URL=http://127.0.0.1:8080 sh tests/stress/vegeta/attack.sh
 ```
 
 Imprime el reporte completo de Vegeta (se guarda en `results/vegeta-report.txt`) y después
@@ -93,7 +107,7 @@ Los errores concretos están en el `Error Set` del reporte completo.
 
 Comprueba que una réplica sostiene sus 8 cupos ocupados con pedidos cercanos a
 `MAX_UPLOAD_SIZE` sin pasarse del tope de 1 GiB (issue #36). Hay que levantar el
-stack con **una sola réplica**, porque el proxy reparte entre todas y el objetivo
+stack con **una sola réplica**, porque Traefik reparte entre todas y el objetivo
 es saturar una:
 
 ```bash
@@ -118,9 +132,9 @@ Sirven para los dos scripts, salvo donde se indica.
 
 | Variable       | Default                  | Descripción |
 |----------------|--------------------------|-------------|
-| `BASE_URL`     | `http://localhost:8001`  | URL del proxy. Desde un contenedor: `http://host.docker.internal:8001` |
+| `BASE_URL`     | `http://127.0.0.1:8080`  | Traefik. En `vegeta/attack.sh` el default es `http://traefik`, porque corre dentro de `mired` |
 | `PDF_DIR`      | `tests/stress/pdfs`      | Carpeta con los PDFs. En k6, una ruta relativa se toma desde `k6/` |
-| `PDF_FILES`    | `01.pdf,02.pdf,03.pdf,04.pdf` | PDFs a rotar, separados por coma |
+| `PDF_FILES`    | los 4 PDFs oficiales     | PDFs a rotar, separados por coma |
 | `TIMEOUT`      | `30s`                    | Timeout de cliente por solicitud |
 | `RATE`         | `50`                     | Solo Vegeta: solicitudes por segundo |
 | `DURATION`     | `30s`                    | Solo Vegeta: duración del ataque |
@@ -131,8 +145,10 @@ El perfil del spike está fijo en `k6/spike.js` porque es el de la consigna.
 
 ## Al comparar corridas
 
-- Los timeouts del proxy también influyen en los resultados: ver
-  [proxy/README.md](../../proxy/README.md). Con los valores por defecto, el proxy puede
-  devolver `504` a los 30s si no termina de recibir un PDF (`PROXY_READ_BODY_TIMEOUT`).
+- Los timeouts de Traefik también influyen en los resultados: viven en el repo de
+  [infra](https://github.com/juandelosrios124/pdf_extractext-infra) y están explicados en
+  su tabla «Presupuesto de timeouts». Con los valores por defecto, Traefik puede devolver
+  `504` a los 30 s si no termina de recibir un PDF (`readTimeout` del entrypoint `web`) o
+  a los 25 s si la réplica no manda los headers de respuesta (`responseHeaderTimeout`).
 - Si el generador de carga corre en la misma máquina que el servicio, compiten por CPU.
   Anotarlo junto con los resultados.

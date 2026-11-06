@@ -9,12 +9,14 @@ set -eu
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 
-BASE_URL="${BASE_URL:-http://localhost:8001}"
+# Default pensado para correr el contenedor de Vegeta en la red mired, donde
+# Traefik responde por nombre. Desde el host: BASE_URL=http://127.0.0.1:8080
+BASE_URL="${BASE_URL:-http://traefik}"
 RATE="${RATE:-50}"
 DURATION="${DURATION:-30s}"
 TIMEOUT="${TIMEOUT:-30s}"
 PDF_DIR="${PDF_DIR:-$SCRIPT_DIR/../pdfs}"
-PDF_FILES="${PDF_FILES:-01.pdf 02.pdf 03.pdf 04.pdf}"
+PDF_FILES="${PDF_FILES:-2020-Scrum-Guide-Spanish-Latin-South-American.pdf Essential-Kanban-Condensed-Spanish.pdf Filosofia_Lean.pdf scrum_manager_historias_usuario.pdf}"
 OUT_DIR="${OUT_DIR:-$SCRIPT_DIR/../results}"
 
 BOUNDARY="vegeta-stress-boundary"

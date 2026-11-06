@@ -89,8 +89,8 @@ def test_el_check_no_apunta_a_localhost(prohibido):
 
 
 def test_la_ip_publicada_es_la_de_la_interfaz_que_llega_a_consul():
-    # La réplica está en dos redes y gethostbyname no garantiza el orden:
-    # se pregunta por qué interfaz saldría un paquete hacia Consul.
+    # gethostbyname no garantiza el orden de las interfaces: se pregunta por
+    # cual saldria un paquete hacia Consul.
     assert shared_network_ip("http://127.0.0.1:8500") == "127.0.0.1"
 
 

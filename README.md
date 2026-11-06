@@ -13,27 +13,33 @@ git clone https://github.com/juandelosrios124/extract-service.git
 cd extract-service
 git checkout v1.1
 
-# Red externa compartida con Consul y documents-service: una sola vez por
-# maquina. Si ya existe (la pudo crear otro repo), ignorar el error.
+# Red externa compartida con Consul, Traefik y documents-service: una sola vez
+# por maquina. Si ya existe (la pudo crear otro repo), ignorar el error.
 docker network create mired
 
 docker compose up --build -d --wait
 ```
 
-Levanta **5 réplicas** (1,0 CPU y 1 GiB cada una) detrás de Caddy, publicado en `http://localhost:8001`.
-
-Probar un pedido:
+Levanta **5 réplicas** (1,0 CPU y 1 GiB cada una). Este compose **no publica ningún puerto**: el punto de entrada es **Traefik**, que vive en el repo de [infra](https://github.com/juandelosrios124/pdf_extractext-infra) y descubre las réplicas por el catálogo de Consul. Hay que levantarlo ahí:
 
 ```bash
-curl -s -H "Content-Type: application/pdf" --data-binary @tests/stress/pdfs/Filosofia_Lean.pdf http://localhost:8001/extract | head -c 300
+docker compose up -d --wait        # en pdf_extractext-infra: Consul y Traefik
 ```
 
-En PowerShell: `curl.exe -s -H "Content-Type: application/pdf" --data-binary "@tests/stress/pdfs/Filosofia_Lean.pdf" http://127.0.0.1:8001/extract`.
+Traefik queda publicado en `http://127.0.0.1:8080` (el tráfico) y su dashboard en `http://127.0.0.1:8081`. Probar un pedido:
+
+```bash
+curl -s -H "Content-Type: application/pdf" --data-binary @tests/stress/pdfs/Filosofia_Lean.pdf http://127.0.0.1:8080/extract | head -c 300
+```
+
+En PowerShell: `curl.exe -s -H "Content-Type: application/pdf" --data-binary "@tests/stress/pdfs/Filosofia_Lean.pdf" http://127.0.0.1:8080/extract`.
+
+Se usa `127.0.0.1` y no `localhost` porque Traefik se publica solo en IPv4 y `localhost` puede resolver a `::1`.
 
 Estado y limpieza:
 
 ```bash
-docker compose ps        # 5 réplicas "healthy" y el proxy
+docker compose ps        # 5 réplicas "healthy"
 docker compose down
 ```
 
@@ -64,13 +70,12 @@ Todo se configura por variables de entorno (Twelve-Factor). Los valores por defe
 | `EXTRACT_MAX_UPLOAD_SIZE` | `52428800` | 50 MiB; el cuerpo se corta apenas se supera |
 | `EXTRACT_LOG_LEVEL` | `INFO` | Logs a stdout |
 | `EXTRACT_LOG_FORMAT` | `json` | `json` emite un objeto por línea con `request_id`, para recolectores de logs; `text` queda legible en una terminal. El default del código es `text` |
-| `PROXY_PORT` | `8001` | Puerto publicado |
 | `SHARED_NETWORK` | `mired` | Nombre de la red externa compartida con Consul y documents-service. Es la misma variable en los tres repos: si se cambia, hay que cambiarla en todos |
-| `CONSUL_ENABLED` | `false` | Autorregistro en Consul. Apagado: el servicio funciona igual sin Consul |
+| `CONSUL_ENABLED` | `true` | Autorregistro en Consul, que es cómo Traefik descubre las réplicas (#32). En `false` el servicio funciona igual, pero queda sin publicar |
 | `CONSUL_HTTP_ADDR` | `http://consul:8500` | Agente de Consul, visto desde `mired` |
 | `CONSUL_HTTP_TOKEN` | *(vacío)* | Token de ACL de Consul. Solo por entorno, nunca en el repo |
 
-Los timeouts de Caddy (`PROXY_DIAL_TIMEOUT`, `PROXY_TRY_DURATION`, `PROXY_RESPONSE_TIMEOUT`, `PROXY_READ_BODY_TIMEOUT`, `PROXY_WRITE_TIMEOUT`, `PROXY_IDLE_TIMEOUT`) también son variables; ver `.env.example`.
+Los timeouts del borde ya no son de este repo: los define Traefik y están en el repo de [infra](https://github.com/juandelosrios124/pdf_extractext-infra), documentados en su tabla «Presupuesto de timeouts».
 
 **Por qué esta configuración.** En la prueba de la cátedra (Vegeta, 50 req/s durante 30 s) la configuración sin límites logró 68,93 % de éxito y 17,30 req/s; con el límite de 8 por réplica, **76,13 % y 20,06 req/s**, con 262 timeouts contra 465 y 96 respuestas `503` controladas. La referencia de la cátedra es 66,53 % y 16,65 req/s. Los valores 8, 15 s y 20 s son un primer ajuste razonado, no un óptimo: ver el informe.
 
@@ -84,9 +89,8 @@ En PowerShell: `$env:EXTRACT_MAX_CONCURRENT_UPLOADS="0"; $env:EXTRACT_MAX_QUEUE_
 
 ## Red compartida
 
-Cada réplica vive en **dos** redes:
+Desde la #33 cada réplica vive en **una sola** red:
 
-- `extract-service_default`, la red privada que crea Compose para este proyecto. Por ahí entra el proxy, así que el balanceo no cambia en nada respecto de antes.
 - `mired`, la red Docker **externa** que comparten los tres repos del trabajo práctico ([pdf_extractext-infra](https://github.com/juandelosrios124/pdf_extractext-infra), este y [documents-service](https://github.com/OlivettiSantino/documents-service)). Gracias a ella Consul puede chequear la IP de cada réplica y `documents-service` puede llamarlas directo, sin pasar por el puerto publicado en el host.
 
 Al ser externa, hay que crearla **una sola vez por máquina y antes** del primer `docker compose up`; es el único paso previo que agrega:
@@ -99,19 +103,19 @@ docker network create mired
 
 Desde cualquier contenedor de `mired`, las réplicas se alcanzan en `http://extract:8001`: el DNS de Docker devuelve una IP por réplica. También responden al alias `extract-service`, pero el nombre canónico es `extract`.
 
-El **proxy no se suma a `mired`** a propósito: queda solo en la red del proyecto para que `proxy → extract` siga siendo exactamente lo de antes. Quien esté en `mired` y quiera pasar por el balanceador puede seguir usando el puerto publicado en el host (`http://host.docker.internal:8001`).
+Antes había además una red privada del proyecto, por donde entraba Caddy. Con Caddy eliminado (#33) no quedó nadie que la use: el tráfico entra por Traefik, que también está en `mired`, así que las réplicas se declaran solo ahí.
 
 ### Service discovery con Consul
 
-Cada réplica puede registrarse sola en [Consul](https://github.com/juandelosrios124/pdf_extractext-infra) al arrancar y desregistrarse al apagarse. Viene **apagado**: sin Consul el servicio funciona igual, y si el registro falla la réplica arranca de todas formas (solo queda un `WARNING` en el log).
+Cada réplica se registra sola en [Consul](https://github.com/juandelosrios124/pdf_extractext-infra) al arrancar y se desregistra al apagarse. **Viene encendido** en el compose desde la #32, porque es así como Traefik descubre las réplicas. Igual nunca es fatal: si Consul no está o el registro falla, la réplica arranca de todas formas y solo queda un `WARNING` en el log (el default del código, fuera de Compose, sigue siendo `false`).
 
-Para activarlo, con Consul levantado en `mired`:
+Si el Consul de infra tiene ACLs con `default_policy = "deny"`, hay que pasarle el token:
 
 ```bash
-CONSUL_ENABLED=true CONSUL_HTTP_TOKEN=<el mismo UUID que el .env de infra> docker compose up -d --force-recreate --wait
+CONSUL_HTTP_TOKEN=<el mismo UUID que el .env de infra> docker compose up -d --force-recreate --wait
 ```
 
-En PowerShell: `$env:CONSUL_ENABLED="true"; $env:CONSUL_HTTP_TOKEN="<uuid>"; docker compose up -d --force-recreate --wait`.
+En PowerShell: `$env:CONSUL_HTTP_TOKEN="<uuid>"; docker compose up -d --force-recreate --wait`.
 
 Lo que registra cada réplica:
 
@@ -119,7 +123,7 @@ Lo que registra cada réplica:
 |---|---|---|
 | `ID` | hostname del contenedor | Único por réplica, así las 5 conviven en el catálogo |
 | `Name` | `extract` | El nombre con el que la busca `documents-service` |
-| `Address` | su IP en `mired` | La réplica está en dos redes; se publica la de la red compartida, que es la que ve Consul |
+| `Address` | su IP en `mired` | Se resuelve preguntando por qué interfaz saldría un paquete hacia Consul, en vez de confiar en el orden de `gethostbyname` |
 | `Port` | `8001` | |
 | `Check` | `HTTP` a `http://<IP>:8001/health`, `Interval 10s`, `Timeout 2s` | A la IP de la réplica y no a `localhost`, que desde Consul es el propio contenedor de Consul |
 | `DeregisterCriticalServiceAfter` | `1m` | Un `docker kill` no da tiempo a desregistrarse: Consul la saca del catálogo por su cuenta |
@@ -188,11 +192,16 @@ El `retry` de Traefik reintenta ante **error de red**, no ante un `503` de la ap
 
 ```mermaid
 flowchart LR
-  C[Cliente] --> P[Caddy: round robin]
-  P --> R1[extract 1]
-  P --> R2[extract 2]
-  P --> R5[extract 5]
+  C[Cliente / k6 / Vegeta] --> T[Traefik]
+  D[documents-service] --> T
+  T --> R1[extract 1]
+  T --> R2[extract 2]
+  T --> R5[extract 5]
+  R1 -. se registra .-> K[(Consul)]
+  K -. catalogo .-> T
 ```
+
+Traefik vive en el repo de infra y descubre las réplicas por el catálogo de Consul: cada una se registra al arrancar con los tags que configuran su router, su circuit breaker, su retry y su límite de concurrencia (ver [Publicación en Traefik](#publicación-en-traefik)).
 
 Cada réplica admite como máximo `MAX_CONCURRENT_UPLOADS` pedidos, lee el cuerpo en memoria (sin escribir a disco) y extrae el texto con PyMuPDF en un pool de hilos separado del event loop. Decisiones principales:
 
@@ -234,12 +243,11 @@ Los scripts `tests/stress/k6/spike.js` y `tests/stress/vegeta/attack.sh` envían
 ```
 extractor/            código del servicio (api, services, config, main)
 extractor/services/consul.py  autorregistro de la réplica en Consul
-proxy/Caddyfile       reverse proxy y balanceo
 tests/                tests unitarios
 tests/stress/         PDFs oficiales, scripts de k6 y Vegeta, resultados
 informe.md            informe técnico
 docs/                 bitácora de mediciones
-docker-compose.yml    5 réplicas con límites de recursos y Caddy
+docker-compose.yml    5 réplicas con límites de recursos, en la red mired
 ```
 
 ## Metodología
