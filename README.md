@@ -318,8 +318,8 @@ Se escribieron con TDD (rojo, verde, refactor).
 Los 4 PDFs oficiales están en `tests/stress/pdfs/` y los scripts de la cátedra, adaptados para leer la URL y la carpeta de PDFs del entorno, en `tests/stress/profesor/` (los originales, en `original/`). Con el stack levantado:
 
 ```bash
-# Vegeta: 50 req/s durante 30 s, timeout de 30 s (por la red interna de Docker)
-docker run --rm --network extract-service_default -v "$PWD/tests/stress:/stress" --entrypoint sh peterevans/vegeta -c "vegeta attack -targets=/stress/profesor/test_carga.txt -rate=50 -duration=30s -timeout=30s | vegeta report"
+# Vegeta: 50 req/s durante 30 s, timeout de 30 s (por mired, la red de Traefik)
+docker run --rm --network mired -v "$PWD/tests/stress:/stress" --entrypoint sh peterevans/vegeta -c "vegeta attack -targets=/stress/profesor/test_carga.txt -rate=50 -duration=30s -timeout=30s | vegeta report"
 
 # k6: spike de 100 usuarios virtuales
 k6 run tests/stress/profesor/spike_tests.js
