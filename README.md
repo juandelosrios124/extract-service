@@ -153,14 +153,32 @@ Comprobar:
 # Que servicios ve Consul: deberia listar "extract"
 docker exec pdf_extractext-infra-consul-1 consul catalog services
 
-# Las 5 replicas con su ID, su IP de mired y el estado del check (sin jq)
-curl -s http://127.0.0.1:8500/v1/health/service/extract | python -c "import sys,json;[print(s['Service']['ID'], s['Service']['Address'], [c['Status'] for c in s['Checks'] if c['CheckID'].startswith('service:')][0]) for s in json.load(sys.stdin)]"
-
-# Solo las que estan passing
-curl -s "http://127.0.0.1:8500/v1/health/service/extract?passing"
-
 # Una se cae: pasa a critical y, un minuto despues, desaparece del catalogo
 docker kill extract-service-extract-1
+```
+
+La API de Consul necesita token: sin él, las lecturas devuelven `200` con `[]`, no `403`. Alcanza el de Traefik, que es de solo lectura, tomado del `.env` de infra sin imprimirlo (ver [UI y API con token](https://github.com/juandelosrios124/pdf_extractext-infra#ui-y-api-con-token)). Desde este repo, en bash:
+
+```bash
+# Leer solo esa variable, sin exportarla: un "set -a; . .env" de infra
+# exportaria tambien el CONSUL_HTTP_TOKEN de management y pisaria este .env
+token=$(sed -n 's/^CONSUL_TRAEFIK_TOKEN=//p' ../pdf_extractext-infra/.env)
+
+# Las 5 replicas con su ID, su IP de mired y el estado del check (sin jq)
+curl -s -H "X-Consul-Token: $token" http://127.0.0.1:8500/v1/health/service/extract | python -c "import sys,json;[print(s['Service']['ID'], s['Service']['Address'], [c['Status'] for c in s['Checks'] if c['CheckID'].startswith('service:')][0]) for s in json.load(sys.stdin)]"
+
+# Solo las que estan passing
+curl -s -H "X-Consul-Token: $token" "http://127.0.0.1:8500/v1/health/service/extract?passing"
+```
+
+En fish:
+
+```fish
+set -l token (string match -rg '^CONSUL_TRAEFIK_TOKEN=(.*)' < ../pdf_extractext-infra/.env)
+
+curl -s -H "X-Consul-Token: $token" http://127.0.0.1:8500/v1/health/service/extract | python -c "import sys,json;[print(s['Service']['ID'], s['Service']['Address'], [c['Status'] for c in s['Checks'] if c['CheckID'].startswith('service:')][0]) for s in json.load(sys.stdin)]"
+
+curl -s -H "X-Consul-Token: $token" "http://127.0.0.1:8500/v1/health/service/extract?passing"
 ```
 
 La UI está en <http://127.0.0.1:8500/ui>. El nombre del contenedor de Consul sale del proyecto Compose de infra; si lo levantaste con otro nombre, ajustá el `docker exec`.
