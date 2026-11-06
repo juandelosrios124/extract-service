@@ -19,3 +19,8 @@ def get_extraction_pool(request: Request) -> ThreadPoolExecutor:
 
 def get_upload_slots(request: Request) -> Optional[asyncio.Semaphore]:
     return request.app.state.upload_slots
+
+
+def get_running_extractions(request: Request):
+    """El registro de extracciones en curso, que usa la readiness (issue #35)."""
+    return request.app.state.running_extractions

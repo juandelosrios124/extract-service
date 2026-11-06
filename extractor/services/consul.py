@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 # Fijados por la issue #16: el nombre con el que documents-service y Traefik
 # buscan al servicio, y los tiempos del health check.
 SERVICE_NAME = "extract"
+# Lo que chequea Consul: readiness, no liveness (issue #35).
+READINESS_PATH = "/health/ready"
 CHECK_INTERVAL = "10s"
 CHECK_TIMEOUT = "2s"
 # Un "docker kill" no da tiempo a desregistrarse: pasado este tiempo en estado
@@ -56,7 +58,11 @@ class Registration:
             "Check": {
                 # A la IP de la réplica: "localhost", visto desde Consul, es el
                 # propio contenedor de Consul.
-                "HTTP": f"http://{self.address}:{self.port}/health",
+                # Readiness y no liveness (issue #35): si el hilo de extracción
+                # está trabado, Traefik tiene que sacarla del balanceo. Reiniciar
+                # el contenedor es otra decisión, y la toma el HEALTHCHECK de
+                # Docker, que sigue apuntando a /health.
+                "HTTP": f"http://{self.address}:{self.port}{READINESS_PATH}",
                 "Interval": CHECK_INTERVAL,
                 "Timeout": CHECK_TIMEOUT,
                 "DeregisterCriticalServiceAfter": DEREGISTER_CRITICAL_AFTER,

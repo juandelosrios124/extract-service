@@ -7,14 +7,22 @@ Starlette's form parser, which spools uploads larger than 1MB to disk.
 """
 
 import asyncio
+import contextlib
 import contextvars
+import threading
 import time
+from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from extractor.api.dependencies import get_extraction_pool, get_settings, get_upload_slots
+from extractor.api.dependencies import (
+    get_extraction_pool,
+    get_running_extractions,
+    get_settings,
+    get_upload_slots,
+)
 from extractor.api.multipart import MULTIPART_FILE_FIELD, file_from_multipart
 from extractor.api.schemas import ExtractResponse
 from extractor.config import Settings
@@ -30,6 +38,41 @@ router = APIRouter()
 
 class RequestExpired(Exception):
     """The request waited longer than MAX_QUEUE_WAIT before extraction could start."""
+
+
+class RunningExtractions:
+    """Las extracciones que están corriendo en el pool, con su hora de inicio.
+
+    Sirve para la readiness (issue #35): si la más vieja lleva demasiado
+    tiempo, el hilo está trabado y la réplica no puede atender, aunque
+    ``/health`` siga diciendo ``ok``.
+
+    El worker del pool escribe y el event loop lee, así que va con lock.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._inicios: dict[object, float] = {}
+
+    @contextlib.contextmanager
+    def tracking(self) -> Iterator[None]:
+        """Marca una extracción como en curso mientras dure el bloque."""
+        marca = object()
+        with self._lock:
+            self._inicios[marca] = time.monotonic()
+        try:
+            yield
+        finally:
+            with self._lock:
+                self._inicios.pop(marca, None)
+
+    def seconds_of_oldest(self) -> float:
+        """Segundos que lleva la extracción más vieja. 0 si no hay ninguna."""
+        with self._lock:
+            if not self._inicios:
+                return 0.0
+            mas_vieja = min(self._inicios.values())
+        return time.monotonic() - mas_vieja
 
 
 @router.post(
@@ -58,14 +101,15 @@ async def extract_pdf(
     settings: Settings = Depends(get_settings),
     extraction_pool: ThreadPoolExecutor = Depends(get_extraction_pool),
     upload_slots: Optional[asyncio.Semaphore] = Depends(get_upload_slots),
+    running: "RunningExtractions" = Depends(get_running_extractions),
 ) -> ExtractResponse:
     started_at = time.monotonic()
     if upload_slots is None:
-        return await _extract(request, settings, extraction_pool, started_at)
+        return await _extract(request, settings, extraction_pool, started_at, running)
 
     await _acquire_slot(upload_slots, settings.UPLOAD_SLOT_TIMEOUT)
     try:
-        return await _extract(request, settings, extraction_pool, started_at)
+        return await _extract(request, settings, extraction_pool, started_at, running)
     finally:
         upload_slots.release()
 
@@ -87,6 +131,7 @@ async def _extract(
     settings: Settings,
     extraction_pool: ThreadPoolExecutor,
     started_at: float,
+    running: "RunningExtractions",
 ) -> ExtractResponse:
     body = await _read_body_within_limit(request, settings.MAX_UPLOAD_SIZE)
     pdf_bytes = _pdf_bytes_from(body, request.headers.get("content-type", ""))
@@ -110,6 +155,7 @@ async def _extract(
             settings.MAX_QUEUE_WAIT,
             settings.EXTRACTION_DEADLINE,
             settings.MAX_PAGES,
+            running,
         )
     except RequestExpired:
         raise HTTPException(
@@ -157,11 +203,14 @@ def _extract_if_not_expired(
     max_wait: float,
     deadline: float,
     max_pages: int,
+    running: RunningExtractions,
 ) -> PdfExtraction:
     """Runs in a worker thread: skip the work if the request already expired in the queue."""
     if time.monotonic() - started_at > max_wait:
         raise RequestExpired
-    return extract_pdf_content(pdf_bytes, deadline=deadline, max_pages=max_pages)
+    # Mientras dure el bloque, la readiness sabe que este hilo está ocupado.
+    with running.tracking():
+        return extract_pdf_content(pdf_bytes, deadline=deadline, max_pages=max_pages)
 
 
 async def _read_body_within_limit(request: Request, max_size: int) -> bytearray:
