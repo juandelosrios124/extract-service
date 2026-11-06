@@ -5,7 +5,8 @@ cercanos a `MAX_UPLOAD_SIZE`, la replica tiene que sostener los 8 pedidos dentro
 de su tope de 1 GiB. El script dispara los pedidos y, en paralelo, muestrea
 `docker stats` para quedarse con el pico de memoria del contenedor.
 
-Levantar el stack con UNA sola replica y despues correr el script:
+Desde la #33 el punto de entrada es Traefik, que vive en el repo de infra, asi
+que hay que tenerlo levantado. Despues, el stack con UNA sola replica:
 
     EXTRACT_REPLICAS=1 docker compose up --build -d --wait
     uv run python tests/stress/memoria_multipart.py
@@ -118,7 +119,9 @@ def _a_mib(texto: str) -> float:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--url", default="http://localhost:8001/extract")
+    # Traefik, publicado por infra en 127.0.0.1:8080. La IP y no "localhost":
+    # el bind es solo IPv4 y localhost puede resolver a ::1.
+    parser.add_argument("--url", default="http://127.0.0.1:8080/extract")
     parser.add_argument("--pedidos", type=int, default=8, help="pedidos en paralelo")
     parser.add_argument(
         "--mb",

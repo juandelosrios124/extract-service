@@ -15,7 +15,7 @@ export const options = {
     ],
 };
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:8001';
+const BASE_URL = __ENV.BASE_URL || 'http://127.0.0.1:8080';
 const PDF_DIR = __ENV.PDF_DIR || '../pdfs';
 const TIMEOUT = __ENV.TIMEOUT || '60s';
 

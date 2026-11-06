@@ -1,13 +1,14 @@
 services:
-  # Sin "ports": con varias replicas no pueden publicar el mismo puerto del host.
+  # Sin "ports": varias replicas no pueden publicar el mismo puerto del host, y
+  # el acceso entra por Traefik desde la red mired.
   extract:
     build: .
     expose:
       - "8001"
     networks:
-      # Red del proyecto: por aca entra el proxy, el balanceo no cambia.
-      default:
-      # Red externa compartida con Consul y documents-service (issue #18).
+      # Unica red: la externa compartida con Consul, Traefik y
+      # documents-service (issues #18 y #33). Traefik llega a cada replica por
+      # aca, asi que la red del proyecto ya no hace falta.
       mired:
         aliases:
           - extract-service
@@ -18,7 +19,7 @@ services:
       LOG_LEVEL: ${EXTRACT_LOG_LEVEL:-INFO}
       LOG_FORMAT: ${EXTRACT_LOG_FORMAT:-json}
       MAX_QUEUE_WAIT: ${EXTRACT_MAX_QUEUE_WAIT:-20}
-      # Backpressure: las lee la app, no el proxy.
+      # Backpressure: las lee la app.
       MAX_CONCURRENT_UPLOADS: ${EXTRACT_MAX_CONCURRENT_UPLOADS:-8}
       UPLOAD_SLOT_TIMEOUT: ${EXTRACT_UPLOAD_SLOT_TIMEOUT:-15}
       # Service discovery (issue #16). Encendido por defecto desde la #32:
@@ -42,27 +43,9 @@ services:
           cpus: "${EXTRACT_CPUS:-1.0}"
           memory: ${EXTRACT_MEMORY:-1g}
 
-  # Punto de entrada unico a extract: balancea entre las replicas.
-  proxy:
-    image: caddy:2.10-alpine
-    ports:
-      - "${PROXY_PORT:-8001}:80"
-    volumes:
-      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
-    environment:
-      PROXY_DIAL_TIMEOUT: ${PROXY_DIAL_TIMEOUT:-5s}
-      PROXY_RESPONSE_TIMEOUT: ${PROXY_RESPONSE_TIMEOUT:-60s}
-      PROXY_TRY_DURATION: ${PROXY_TRY_DURATION:-5s}
-      PROXY_READ_BODY_TIMEOUT: ${PROXY_READ_BODY_TIMEOUT:-30s}
-      PROXY_WRITE_TIMEOUT: ${PROXY_WRITE_TIMEOUT:-2m}
-      PROXY_IDLE_TIMEOUT: ${PROXY_IDLE_TIMEOUT:-2m}
-
-    depends_on:
-      extract:
-        condition: service_healthy
-
-# El proxy no se declara en "mired" a proposito: queda solo en la red del
-# proyecto, asi proxy -> extract sigue igual que antes.
+# El punto de entrada es Traefik, que vive en el repo de infra y descubre las
+# replicas por el catalogo de Consul (issues #32 y #33). Este compose no
+# publica ningun puerto: sin infra levantada, el servicio no se alcanza.
 networks:
   # Externa y compartida por los tres repos. Se crea una sola vez por maquina:
   #   docker network create mired

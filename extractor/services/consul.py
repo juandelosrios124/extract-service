@@ -18,7 +18,7 @@ from extractor.config import Settings
 
 logger = logging.getLogger(__name__)
 
-# Fijados por la issue #16: el nombre con el que documents-service y el proxy
+# Fijados por la issue #16: el nombre con el que documents-service y Traefik
 # buscan al servicio, y los tiempos del health check.
 SERVICE_NAME = "extract"
 CHECK_INTERVAL = "10s"
@@ -97,11 +97,11 @@ def traefik_tags(settings: Settings) -> tuple[str, ...]:
 def shared_network_ip(consul_addr: str) -> str:
     """IP propia en la red por la que se alcanza a Consul.
 
-    La réplica está en dos redes (la del proyecto y la compartida ``mired``) y
-    el orden que devuelve ``gethostbyname`` no está garantizado, así que en vez
-    de elegir a ciegas se le pregunta al sistema por qué interfaz saldría un
-    paquete hacia Consul. Con UDP no se manda nada: ``connect`` solo resuelve
-    la ruta.
+    En vez de confiar en el orden que devuelve ``gethostbyname``, que no está
+    garantizado, se le pregunta al sistema por qué interfaz saldría un paquete
+    hacia Consul. Con UDP no se manda nada: ``connect`` solo resuelve la ruta.
+    Desde la #33 la réplica está en una sola red, pero el método sigue siendo
+    el correcto si mañana vuelve a estar en varias.
     """
     parts = urlsplit(consul_addr)
     host = parts.hostname or "consul"
