@@ -1,8 +1,22 @@
+# Imagen (12-Factor V): este archivo usa la imagen que publica la CI en GHCR,
+# sin "build". docker-compose.override.yml, que Compose lee solo, le agrega el
+# build local para desarrollo (y para "make up" de infra). Release, sin
+# compilar (ver README, "Imagen y releases"):
+#
+#   EXTRACT_IMAGE_TAG=sha-xxxxxxx docker compose -f docker-compose.yml up -d --wait
+
 services:
   # Sin "ports": varias replicas no pueden publicar el mismo puerto del host, y
   # el acceso entra por Traefik desde la red mired.
   extract:
-    build: .
+    # La imagen construida una sola vez por la CI. Vacio o "latest" en
+    # desarrollo; un sha-xxxxxxx o vX.Y.Z para una release reproducible.
+    # Sin pull_policy (default "missing"): un sha-/vX.Y.Z es inmutable, asi que
+    # bajarlo una vez alcanza y no hace falta ir al registro en cada "up".
+    # "always" ademas pasaria al override y haria que el desarrollo intente
+    # bajar extract-service:dev de Docker Hub. Para refrescar "latest":
+    # docker compose -f docker-compose.yml pull extract
+    image: ghcr.io/juandelosrios124/extract-service:${EXTRACT_IMAGE_TAG:-latest}
     expose:
       - "8001"
     networks:
