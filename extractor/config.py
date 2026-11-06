@@ -40,6 +40,13 @@ class Settings(BaseSettings):
     # techo para entradas absurdas, y el deadline es la protección real.
     # 0 = sin límite.
     MAX_PAGES: int = Field(default=10000, ge=0)
+    # Readiness (issue #35): si la extracción en curso lleva más de esto en el
+    # hilo, /health/ready responde 503 y Traefik saca a la réplica del balanceo.
+    # Tiene que ser MAYOR que EXTRACTION_DEADLINE: por debajo, una extracción
+    # legítima marcaría como no lista a una réplica sana. Lo que detecta es el
+    # caso que el deadline no puede cortar, una sola página colgada.
+    # 0 = readiness siempre lista.
+    READINESS_STUCK_AFTER: float = Field(default=12.0, ge=0)
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     # json para los recolectores de logs, text para leer en una terminal.
     LOG_FORMAT: Literal["text", "json"] = "text"

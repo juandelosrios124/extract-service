@@ -26,6 +26,8 @@ services:
       UPLOAD_SLOT_TIMEOUT: ${EXTRACT_UPLOAD_SLOT_TIMEOUT:-5}
       EXTRACTION_DEADLINE: ${EXTRACT_EXTRACTION_DEADLINE:-8}
       MAX_PAGES: ${EXTRACT_MAX_PAGES:-10000}
+      # Readiness (issue #35): tiene que ser mayor que EXTRACTION_DEADLINE.
+      READINESS_STUCK_AFTER: ${EXTRACT_READINESS_STUCK_AFTER:-12}
       # Service discovery (issue #16). Encendido por defecto desde la #32:
       # Traefik descubre las replicas por el catalogo de Consul. Si Consul no
       # esta, el registro falla con un WARNING y la replica arranca igual. El

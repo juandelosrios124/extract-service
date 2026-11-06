@@ -48,7 +48,8 @@ docker compose down
 | Método | Ruta | Descripción |
 |---|---|---|
 | POST | `/extract` | Recibe un PDF como cuerpo binario (`Content-Type: application/pdf`) o como `multipart/form-data` (campo `file`) y responde `{"content": "...", "page_count": N}`. `content` es texto plano |
-| GET | `/health` | Estado del servicio |
+| GET | `/health` | **Liveness**: el proceso está vivo. Lo usa el `HEALTHCHECK` de Docker |
+| GET | `/health/ready` | **Readiness**: además, el hilo de extracción no está trabado. `503` si lo está. Lo usa el check de Consul, y con eso Traefik saca a la réplica del balanceo |
 
 Errores: `400` (sin PDF o PDF inválido), `413` (supera `MAX_UPLOAD_SIZE`), `422` (más páginas que `MAX_PAGES`) y `503` con `Retry-After: 1` cuando el servicio está saturado (sin cupo, pedido vencido en la cola, o extracción cortada por `EXTRACTION_DEADLINE`). Un `503` indica reintentar más tarde; no es una falla del servicio. Un `422`, en cambio, no se arregla reintentando: el documento es el problema, y por eso no lleva `Retry-After`.
 
@@ -68,6 +69,7 @@ Todo se configura por variables de entorno (Twelve-Factor). Los valores por defe
 | `EXTRACT_UPLOAD_SLOT_TIMEOUT` | `5` | Segundos que un pedido espera un cupo (sin leer el cuerpo) antes de recibir `503` |
 | `EXTRACT_MAX_QUEUE_WAIT` | `15` | Si un pedido ya esperó 15 s antes de empezar a extraer, se descarta con `503` sin gastar CPU |
 | `EXTRACT_EXTRACTION_DEADLINE` | `8` | Segundos máximos de extracción, chequeados **entre páginas**. Pasado eso, `503`: sin esto un PDF pesado congela la réplica, porque la extracción corre en el pool y no se puede cancelar |
+| `EXTRACT_READINESS_STUCK_AFTER` | `12` | Segundos tras los cuales se considera que la extracción se trabó y `/health/ready` responde `503`. **Mayor que el deadline** a propósito: por debajo, una extracción legítima marcaría mal a una réplica sana |
 | `EXTRACT_MAX_PAGES` | `10000` | Tope duro de páginas. Por encima se responde `422` sin extraer nada. No está afinado contra el deadline: es un techo para entradas absurdas |
 | `EXTRACT_MAX_UPLOAD_SIZE` | `52428800` | 50 MiB; el cuerpo se corta apenas se supera |
 | `EXTRACT_LOG_LEVEL` | `INFO` | Logs a stdout |
@@ -149,6 +151,28 @@ docker kill extract-service-extract-1
 La UI está en <http://127.0.0.1:8500/ui>. El nombre del contenedor de Consul sale del proyecto Compose de infra; si lo levantaste con otro nombre, ajustá el `docker exec`.
 
 El token de ACL se toma de `CONSUL_HTTP_TOKEN` y viaja en el header `X-Consul-Token`; no está en el repo ni se escribe en los logs.
+
+### Liveness y readiness
+
+Son dos preguntas distintas, con consumidores distintos:
+
+| | `/health` | `/health/ready` |
+|---|---|---|
+| Pregunta | ¿el proceso está vivo? | ¿además puede atender? |
+| Mira el hilo de extracción | no | sí |
+| Lo consume | `HEALTHCHECK` de Docker | check de Consul → Traefik |
+| Qué pasa si falla | Docker **reinicia** el contenedor | Traefik la **saca del balanceo**, sin reiniciarla |
+
+`/health` no mira el pool a propósito: si lo mirara, bajo carga las 5 réplicas se marcarían mal a la vez y el servicio caería completo (es la regresión que cubre `test_health.py`).
+
+La readiness existe por una limitación concreta del `EXTRACTION_DEADLINE`: se chequea **entre páginas**, así que una sola página que cuelgue no se puede interrumpir, y con `THREAD_POOL_SIZE=1` eso deja a la réplica sin poder atender mientras `/health` sigue diciendo `ok`. `READINESS_STUCK_AFTER` (12 s) es mayor que el deadline (8 s) justamente para que solo dispare en ese caso.
+
+```bash
+curl -s 127.0.0.1:8080/health/ready
+# {"status":"ready","extracting_for_seconds":0.0}
+```
+
+**Limitación conocida.** El check de Consul lleva `DeregisterCriticalServiceAfter: 1m`, así que una réplica que quede trabada más de un minuto no solo sale del balanceo: Consul la **borra del catálogo**. Como el registro se hace una sola vez, al arrancar, esa réplica no vuelve a aparecer hasta que se reinicie el contenedor. Para ese caso el `HEALTHCHECK` de Docker no ayuda, porque `/health` sigue respondiendo `ok`.
 
 ### Publicación en Traefik
 

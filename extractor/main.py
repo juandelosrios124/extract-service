@@ -10,6 +10,7 @@ from typing import Optional
 from fastapi import FastAPI
 
 from extractor.api import extract, health
+from extractor.api.extract import RunningExtractions
 from extractor.api.middleware import RequestIdMiddleware
 from extractor.config import Settings
 from extractor.services.consul import Registrar, build_registrar, traefik_tags
@@ -35,6 +36,9 @@ def create_app(settings: Settings, *, consul_registrar: Optional[Registrar] = No
             thread_name_prefix="pdf-extract",
         ) as extraction_pool:
             app.state.extraction_pool = extraction_pool
+            # Readiness (issue #35): qué extracciones están corriendo y desde
+            # cuándo. Vive acá porque el pool es de este lifespan.
+            app.state.running_extractions = RunningExtractions()
             # Created here because the semaphore must belong to the running event loop.
             app.state.upload_slots = (
                 asyncio.Semaphore(settings.MAX_CONCURRENT_UPLOADS)

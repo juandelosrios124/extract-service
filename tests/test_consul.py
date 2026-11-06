@@ -16,6 +16,7 @@ from extractor.services.consul import (
     CHECK_INTERVAL,
     CHECK_TIMEOUT,
     DEREGISTER_CRITICAL_AFTER,
+    READINESS_PATH,
     ConsulAgent,
     Registration,
     ReplicaRegistrar,
@@ -64,7 +65,8 @@ def test_el_registro_tiene_lo_que_pide_la_issue():
     assert payload["Address"] == "172.20.0.3"
     assert payload["Port"] == 8001
     assert payload["Check"] == {
-        "HTTP": "http://172.20.0.3:8001/health",
+        # Readiness y no liveness: issue #35.
+        "HTTP": "http://172.20.0.3:8001/health/ready",
         "Interval": "10s",
         "Timeout": "2s",
         "DeregisterCriticalServiceAfter": "1m",
@@ -324,3 +326,13 @@ def test_la_app_registra_la_replica_con_los_tags_de_traefik(monkeypatch):
 
     assert recibido["tags"] == traefik_tags(settings)
     assert "traefik.http.middlewares.extract-inflight.inflightreq.amount=99" in recibido["tags"]
+
+
+def test_el_check_de_consul_mira_la_readiness_y_no_la_liveness():
+    """Issue #35: si el hilo de extracción se traba, Traefik tiene que sacar a
+    la réplica del balanceo. Reiniciar el contenedor es otra decisión, y la
+    toma el HEALTHCHECK de Docker, que sigue en /health."""
+    check = Registration(service_id="abc", address="172.20.0.4", port=8001).payload()["Check"]
+
+    assert READINESS_PATH == "/health/ready"
+    assert check["HTTP"].endswith(READINESS_PATH)
