@@ -80,11 +80,22 @@ def traefik_tags(settings: Settings) -> tuple[str, ...]:
 
     ``serversTransport`` es lo único que no se puede declarar por tags: lo
     define el provider file de infra como ``extract-transport``.
+
+    El retry va sin ``status`` a propósito (issue #55). Así, en Traefik v3.7,
+    solo reintenta ante un error de red **antes de mandarle un byte a la
+    réplica** (por ejemplo, el dial a una réplica muerta), también en ``POST``:
+    ese camino no mira el método. Como no se mandó nada, el body se reenvía sin
+    guardarlo en memoria, así que ``maxRequestBodyBytes`` no lo limita. Un
+    ``504`` por ``responseHeaderTimeout`` no se reintenta, porque el pedido ya
+    se mandó, y el presupuesto de timeouts se mantiene. ``retryNonIdempotentMethod``
+    solo habilita el retry por ``status``, que no se usa, así que no se declara.
+    Reintentar ``/extract`` sería seguro igual: es una función pura y no guarda
+    nada.
     """
     router = f"traefik.http.routers.{SERVICE_NAME}"
     middleware = f"traefik.http.middlewares.{SERVICE_NAME}"
     service = f"traefik.http.services.{SERVICE_NAME}"
-    return (
+    tags = [
         "traefik.enable=true",
         f"{router}.rule=PathPrefix(`/{SERVICE_NAME}`)",
         # Solo el entrypoint de tráfico: el otro es el del dashboard.
@@ -97,7 +108,18 @@ def traefik_tags(settings: Settings) -> tuple[str, ...]:
         f"{middleware}-retry.retry.attempts={settings.TRAEFIK_RETRY_ATTEMPTS}",
         f"{middleware}-inflight.inflightreq.amount={settings.TRAEFIK_INFLIGHT}",
         f"{service}.loadbalancer.serverstransport=extract-transport@file",
-    )
+    ]
+    if settings.TRAEFIK_INFLIGHT_SOURCE_HEADER:
+        # Sin sourceCriterion, Traefik cuenta los pedidos en vuelo por valor del
+        # header Host: cada Host tiene su propio tope y un cliente lo saltea
+        # cambiándolo. Traefik borra el X-Forwarded-Server que manda un cliente
+        # no confiable y lo vuelve a escribir con su hostname, así que agrupar
+        # por ese header deja un único contador que no se puede falsificar.
+        tags.append(
+            f"{middleware}-inflight.inflightreq.sourcecriterion.requestheadername="
+            f"{settings.TRAEFIK_INFLIGHT_SOURCE_HEADER}"
+        )
+    return tuple(tags)
 
 
 def shared_network_ip(consul_addr: str) -> str:
