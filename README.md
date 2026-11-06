@@ -258,6 +258,7 @@ Traefik corre con `providers.consulcatalog` y `exposedByDefault=false`, así que
 | `...extract-cb.circuitbreaker.recoveryDuration` | `TRAEFIK_CB_RECOVERY` | `10s` |
 | `...extract-retry.retry.attempts` | `TRAEFIK_RETRY_ATTEMPTS` | `2` |
 | `...extract-inflight.inflightreq.amount` | `TRAEFIK_INFLIGHT` | `80` |
+| `...extract-inflight.inflightreq.sourcecriterion.requestheadername` | `TRAEFIK_INFLIGHT_SOURCE_HEADER` | `X-Forwarded-Server` (vacío: no se manda el tag) |
 | `...services.extract.loadbalancer.serverstransport` | — | `extract-transport@file` |
 
 `serversTransport` es lo único que no se puede declarar por tags; lo define el provider file de infra.
@@ -278,8 +279,14 @@ Se eligió excluirlo porque **el `503` del backpressure no es una falla de la r�
 
 El breaker queda entonces para fallas de verdad: errores de red (réplica caída o inalcanzable) y `500`/`502`.
 
-El `retry` de Traefik reintenta ante **error de red**, no ante un `503` de la app (sin la opción `status`, deja de reintentar en cuanto la réplica responde, cualquiera sea el código), así que no pelea con la admisión por cupos. Trae además `maxRequestBodyBytes` en 2 MiB por defecto; se comprobó que un PDF de 8,9 MB igual pasa con `200`. El `inflightreq` responde `429` al pasarse del tope y está puesto en el doble de la capacidad agregada (5 réplicas × 8 cupos) a propósito: el control primario sigue siendo la admisión por cupos de la app, que es la que está medida en el informe; el tope del borde solo acota el encolado. Es un primer valor razonado, sin afinar.
+**Qué reintenta el `retry`** (comprobado contra el código de Traefik v3.7.17 y con el stack, issue #55). Con `attempts=2` y sin `status`:
 
+- **Reintenta** cuando el pedido falla **antes de que Traefik le mande un byte a la réplica**: conexión rechazada, o el `dialTimeout` de 2 s contra una réplica caída que Consul todavía no sacó. Vale también para `POST /extract`: ese camino no mira el método. Como no se mandó nada, el PDF se reenvía sin guardarlo en memoria, así que pasa con cualquier tamaño, también los de más de 2 MiB. Con una réplica muerta bajo carga, esos pedidos tardan ~2,1 s (el dial más el segundo intento) y terminan en `200`.
+- **No reintenta** cuando el pedido ya salió hacia la réplica: un `502` porque la réplica murió en medio del pedido, un `504` por `responseHeaderTimeout` (25 s) o cualquier respuesta, incluido el `503` del backpressure. Así no pelea con la admisión por cupos y no rompe el [presupuesto de timeouts](https://github.com/juandelosrios124/pdf_extractext-infra#presupuesto-de-timeouts): un upstream que no responde da **un solo** `504` a los ~25 s.
+- No se declaran `status`, `retryNonIdempotentMethod` ni `maxRequestBodyBytes`. `retryNonIdempotentMethod` solo habilita el retry **por status** para `POST`; con `status`, el retry guardaría en memoria cada body de hasta `maxRequestBodyBytes` (2 MiB por defecto; uno más grande pasa igual, pero no se reintenta) y reintentaría respuestas. `/extract` es una función pura y reintentarlo sería seguro, pero el retry por status no se necesita para el failover, y sumaría memoria en Traefik y un riesgo para el presupuesto de timeouts.
+- En Traefik v3.7.17 un `retry` declarado como middleware **no informa sus reintentos**: `RetryAttempts` del access log queda en 0 y `traefik_service_retries_total` no aparece aunque reintente (`retry.Listeners{}` con un `TODO missing metrics / accessLog` en `pkg/server/middleware/middlewares.go`). Un reintento se reconoce por la duración: ~2,1 s y `200`, contra ~80 ms de un pedido normal.
+
+**Pedidos en vuelo.** El `inflightreq` responde `429` al pasarse del tope y está puesto en el doble de la capacidad agregada (5 réplicas × 8 cupos) a propósito: el control primario sigue siendo la admisión por cupos de la app, que es la que está medida en el informe; el tope del borde solo acota el encolado. Es un primer valor razonado, sin afinar. Sin `sourceCriterion`, Traefik cuenta los pedidos **por valor del header `Host`**: documents (`Host: traefik`) y un cliente que entra por `127.0.0.1:8080` tendrían 80 cada uno, y cualquiera saltearía el tope cambiando el `Host`. Por eso se agrupa por `X-Forwarded-Server`: Traefik borra el que manda un cliente no confiable y lo reescribe con su propio hostname, así que el tope es **uno solo para todos** y no se puede falsificar (comprobado con dos `Host` distintos y con un `X-Forwarded-Server` falso, issue #55).
 
 ## Arquitectura
 
