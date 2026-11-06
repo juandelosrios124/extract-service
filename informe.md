@@ -228,23 +228,28 @@ Trabajo futuro:
 
 ## 10. Reproducibilidad
 
+**Mediciones históricas (v1.0, con Caddy).** Se hicieron con el código de `v1.0`, compilando desde git. En esa versión el proxy era Caddy, `test_carga.txt` apuntaba a `http://proxy/extract` y el proxy vivía solo en la red del proyecto, `extract-service_default`:
+
 ```bash
 git clone https://github.com/juandelosrios124/extract-service.git
-cd extract-service && git checkout v1.1
+cd extract-service && git checkout v1.0
 docker compose up --build -d --wait
 
-# Vegeta, perfil de la cátedra (red interna)
+# Vegeta, perfil de la cátedra (red del proyecto, solo en v1.0)
 docker run --rm --network extract-service_default -v "$PWD/tests/stress:/stress" --entrypoint sh peterevans/vegeta -c "vegeta attack -targets=/stress/profesor/test_carga.txt -rate=50 -duration=30s -timeout=30s | vegeta report"
 
 # k6, script de la cátedra adaptado
 k6 run tests/stress/profesor/spike_tests.js
 ```
 
-Así se reproducen las mediciones anteriores a la #40, compilando desde git. Las posteriores corren la imagen exacta que se midió, sin compilar, con el tag anotado en la fila «Imagen» (ver §4):
+No hay tag `v1.1`: la versión con los cupos corregidos (`a0ac0bf`) nunca se midió con un tag propio.
+
+**Mediciones de la #38 (Traefik).** Corren la imagen exacta que se midió, sin compilar, con el tag anotado en la fila «Imagen» (ver §4), y el generador de carga entra por `mired`, la red de Traefik:
 
 ```bash
-EXTRACT_IMAGE_TAG=sha-xxxxxxx docker compose -f docker-compose.yml up -d --wait
-docker image inspect --format '{{index .RepoDigests 0}}' ghcr.io/juandelosrios124/extract-service:sha-xxxxxxx
+EXTRACT_IMAGE_TAG=sha-ec5b762 docker compose -f docker-compose.yml up -d --wait
+docker image inspect --format '{{index .RepoDigests 0}}' ghcr.io/juandelosrios124/extract-service:sha-ec5b762
+docker run --rm --network mired -v "$PWD/tests/stress:/stress" --entrypoint sh peterevans/vegeta -c "vegeta attack -targets=/stress/profesor/test_carga.txt -rate=50 -duration=30s -timeout=30s | vegeta report"
 ```
 
 Para reproducir la configuración A, levantar con `EXTRACT_MAX_CONCURRENT_UPLOADS=0` y `EXTRACT_MAX_QUEUE_WAIT=1000`. Los datos crudos de las mediciones están en `docs/bitacora-linea-base.md`.
