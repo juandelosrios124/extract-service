@@ -103,11 +103,11 @@ La imagen se construye **una sola vez por commit**, en la CI, y se publica en GH
 
 | Evento | ¿Publica? | Tags |
 |---|---|---|
-| Pull request | No: construye para validar el Dockerfile | — |
+| Pull request | No: construye y escanea para validar el Dockerfile y la imagen | — |
 | Push a `main` | Sí | `sha-<7 caracteres del commit>` y `latest` |
 | Tag de git `vX.Y.Z` | Sí | `sha-<corto>`, `X.Y.Z` y `X.Y` (no `latest`: es solo de `main`) |
 
-Es un solo build por corrida: todos los tags apuntan al mismo digest. La imagen lleva los labels OCI `org.opencontainers.image.source` (vincula el paquete con este repo), `org.opencontainers.image.revision` (el commit) y `org.opencontainers.image.created`.
+El push es uno solo: todos los tags apuntan al mismo digest. La imagen lleva los labels OCI `org.opencontainers.image.source` (vincula el paquete con este repo), `org.opencontainers.image.revision` (el commit) y `org.opencontainers.image.created`.
 
 **Levantar una versión exacta sin compilar.** Con `-f docker-compose.yml`, Compose no lee el override: no hay `build`, solo la imagen de GHCR.
 
@@ -126,6 +126,41 @@ docker image inspect --format '{{index .RepoDigests 0}}' \
 **El desarrollo sigue compilando.** `docker-compose.override.yml` está versionado y Compose lo lee solo cuando no se pasa `-f`: lo usan `docker compose up --build` y `make up` de infra. Agrega `build: .` y etiqueta el resultado como `extract-service:dev`, un nombre local distinto del de GHCR a propósito: si el build local se llamara `ghcr.io/juandelosrios124/extract-service:latest`, taparía la imagen publicada y un `-f docker-compose.yml up` posterior correría lo compilado en la máquina sin avisar. Sin `-f`, Compose **siempre** lee el override: el modo release es solo con `-f docker-compose.yml`.
 
 **Visibilidad del paquete.** GitHub crea el paquete privado en la primera publicación ([Working with the Container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#pushing-container-images)), aunque el repo sea público. Hacerlo público es un paso manual, una sola vez, del dueño: en github.com/juandelosrios124 → *Packages* → `extract-service` → *Package settings* → *Danger Zone* → *Change visibility* → *Public* ([Configuring a package's access control and visibility](https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility)). Mientras siga privado, para bajarlo hace falta `docker login ghcr.io` con un usuario que tenga acceso al paquete y un token con `read:packages`.
+
+### Escaneo de vulnerabilidades de la imagen (Grype)
+
+Antes de publicar, la CI escanea la imagen **recién construida** con [Grype](https://github.com/anchore/grype) (Anchore), fijado en `v0.121.2`. No se publica una imagen que no pasó el escaneo: el job construye con `load: true`, escanea ese tag local (`extract-service:ci`, que no se publica), y solo después hace el push, que sale de la caché de buildx y no recompila. En los pull requests también se escanea, aunque no se publique nada.
+
+**Complementa a `pip-audit`, no lo reemplaza.** `pip-audit` (job `check`) audita las dependencias Python del lock, antes de construir. Grype escanea la imagen entera: además de esas dependencias, los paquetes Debian que trae `python:3.11-slim` (openssl, glibc, zlib, etc.), que hasta la #57 no miraba nadie.
+
+**Umbral: `only-fixed: true` y `severity-cutoff: high`.** El job falla solo con vulnerabilidades *high* o *critical* **que tienen fix disponible**. Por qué ese umbral:
+
+- `only-fixed`: una vulnerabilidad de Debian sin fix publicado no se arregla actualizando. Con la imagen base fijada por digest no hay acción posible, así que rompería la CI de cualquier commit sin que nadie pueda hacer nada al respecto.
+- `high`: por debajo de *high*, el ruido de una imagen Debian es tanto que el umbral dejaría de significar algo y la salida se empezaría a ignorar.
+
+El paso `Resumen` del job deja la cuenta de hallazgos por severidad en una tabla, también de los que no rompen el build.
+
+**Correrlo localmente**, sobre la imagen de desarrollo (`docker compose up --build` la deja etiquetada como `extract-service:dev`):
+
+```bash
+docker run --rm \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v "$PWD:/scan" -w /scan \
+  anchore/grype:v0.121.2 --only-fixed --fail-on high extract-service:dev
+```
+
+En PowerShell, `${PWD}` en lugar de `$PWD`. El repo se monta en `/scan` y se trabaja ahí para que Grype levante el `.grype.yaml`: lo autodetecta en el directorio de trabajo. La primera corrida baja la base de vulnerabilidades (unos cientos de MB).
+
+**Agregar una excepción.** Las excepciones van en `.grype.yaml`, versionado, bajo `ignore:`. Cada una lleva el motivo y la fecha en la que hay que revisarla; sin eso no se ignora nada:
+
+```yaml
+ignore:
+  # Motivo: por que no aplica, o por que no se puede arreglar todavia.
+  # Revisar: 2026-12-01.
+  - vulnerability: CVE-0000-00000
+```
+
+Una excepción es temporal por definición: si en la fecha de revisión sigue ahí, se renueva con un motivo nuevo o se arregla. Mientras no haya ninguna, el archivo no existe.
 
 ## Red compartida
 
