@@ -27,8 +27,25 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/service/.venv/bin:$PATH" \
     PORT=8001
 
+# El zlib1g que trae la base arrastra dos CVE high con fix ya publicado en
+# Debian (CVE-2026-76844 y CVE-2026-85091, los dos en la API gz_* de archivos
+# gzip). Se actualiza al parche; el digest de la base no se mueve, porque la
+# imagen al dia de hoy trae el mismo zlib viejo.
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y zlib1g \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN groupadd --gid 1001 appgroup && \
     useradd --uid 1001 --gid appgroup --no-create-home appuser
+
+# El servicio corre del venv (/service/.venv) y nunca instala nada: pip y
+# setuptools no hacen falta en la imagen final. Se van, y con ellos las copias
+# vendorizadas en setuptools/_vendor (wheel y jaraco.context), que son otros
+# dos high. Menos en la imagen, menos que escanear.
+RUN rm -rf /usr/local/lib/python3.11/site-packages/pip* \
+           /usr/local/lib/python3.11/site-packages/setuptools* \
+           /usr/local/lib/python3.11/site-packages/wheel* \
+           /usr/local/bin/pip /usr/local/bin/pip3 /usr/local/bin/pip3.11
 
 COPY --from=builder /service/.venv ./.venv
 COPY extractor/ ./extractor/
