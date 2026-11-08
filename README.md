@@ -151,6 +151,8 @@ docker run --rm \
 
 En PowerShell, `${PWD}` en lugar de `$PWD`. El repo se monta en `/scan` y se trabaja ahí para que Grype levante el `.grype.yaml`: lo autodetecta en el directorio de trabajo. La primera corrida baja la base de vulnerabilidades (unos cientos de MB).
 
+**Qué se arregló en lugar de ignorar.** El primer escaneo encontró 4 high con fix, los 4 de la imagen base (y la base al día de hoy trae los mismos, así que mover el digest no servía de nada). El Dockerfile los resuelve en la etapa final: actualiza `zlib1g` al parche de Debian (`deb13u1`, dos CVE en la API `gz_*` de archivos gzip) y borra `pip` y `setuptools` de `/usr/local`, que el runtime no usa porque el servicio corre del venv — eso se lleva además las copias vendorizadas en `setuptools/_vendor` (`wheel` y `jaraco.context`). Los hallazgos con fix bajaron de 22 a 9, todos medium o menos. Por eso hoy no hay `.grype.yaml`.
+
 **Agregar una excepción.** Las excepciones van en `.grype.yaml`, versionado, bajo `ignore:`. Cada una lleva el motivo y la fecha en la que hay que revisarla; sin eso no se ignora nada:
 
 ```yaml
