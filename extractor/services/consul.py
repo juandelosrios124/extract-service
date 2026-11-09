@@ -10,6 +10,7 @@ import asyncio
 import json
 import logging
 import socket
+import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Optional, Protocol
@@ -41,6 +42,8 @@ RETRY_MAX_DELAY = 30.0
 
 # (url, body, headers) -> None. Inyectable para poder testear sin red.
 Transport = Callable[[str, bytes, dict[str, str]], None]
+# (url, headers) -> código HTTP. El GET de verificación, también inyectable.
+StatusGetter = Callable[[str, dict[str, str]], int]
 
 
 @dataclass(frozen=True)
@@ -151,6 +154,20 @@ def _urllib_put(url: str, body: bytes, headers: dict[str, str], timeout: float) 
         pass
 
 
+def _urllib_get_status(url: str, headers: dict[str, str], timeout: float) -> int:
+    """Código HTTP de un GET. Un 4xx/5xx se devuelve; un error de red, se propaga."""
+    request = urllib.request.Request(url, headers=headers, method="GET")
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310 (URL propia)
+            return response.status
+    except urllib.error.HTTPError as error:
+        return error.code
+
+
+class ConsulError(Exception):
+    """Consul respondió algo que no sabemos interpretar."""
+
+
 class ConsulAgent:
     """Cliente mínimo de la API HTTP del agente de Consul."""
 
@@ -161,11 +178,15 @@ class ConsulAgent:
         token: str = "",
         timeout: float = REQUEST_TIMEOUT,
         transport: Optional[Transport] = None,
+        getter: Optional[StatusGetter] = None,
     ) -> None:
         self._base_url = base_url.rstrip("/")
         self._token = token
         self._transport: Transport = transport or (
             lambda url, body, headers: _urllib_put(url, body, headers, timeout)
+        )
+        self._getter: StatusGetter = getter or (
+            lambda url, headers: _urllib_get_status(url, headers, timeout)
         )
 
     def _headers(self) -> dict[str, str]:
@@ -184,6 +205,19 @@ class ConsulAgent:
             f"{self._base_url}/v1/agent/service/deregister/{service_id}", b"", self._headers()
         )
 
+    def has_service(self, service_id: str) -> bool:
+        """Si el agente tiene registrado ``service_id`` (200 sí, 404 no).
+
+        Cualquier otro código (por ejemplo, un 403 del ACL) es ``ConsulError``:
+        no dice nada sobre si el servicio está o no.
+        """
+        status = self._getter(f"{self._base_url}/v1/agent/service/{service_id}", self._headers())
+        if status == 200:
+            return True
+        if status == 404:
+            return False
+        raise ConsulError(f"respuesta inesperada del agente: HTTP {status}")
+
 
 class Registrar(Protocol):
     """Lo que el ciclo de vida de la app necesita saber del registro."""
@@ -191,6 +225,8 @@ class Registrar(Protocol):
     def register(self) -> bool: ...
 
     def deregister(self) -> bool: ...
+
+    def is_registered(self) -> Optional[bool]: ...
 
 
 class ReplicaRegistrar:
@@ -232,6 +268,23 @@ class ReplicaRegistrar:
             return False
         logger.info("Réplica %s desregistrada de Consul", self.registration.service_id)
         return True
+
+    def is_registered(self) -> Optional[bool]:
+        """Si el agente todavía tiene esta réplica.
+
+        ``True`` si la tiene (200), ``False`` si no (404) y ``None`` si no se
+        pudo saber (Consul caído, timeout, 403...). ``None`` no es motivo para
+        volver a registrarse: con Consul caído el registro fallaría igual.
+        """
+        try:
+            return self._agent.has_service(self.registration.service_id)
+        except Exception as error:  # noqa: BLE001 - verificar nunca puede tirar abajo la tarea
+            logger.warning(
+                "No se pudo verificar el registro de %s en Consul: %s",
+                self.registration.service_id,
+                error,
+            )
+            return None
 
 
 async def register_with_retry(
