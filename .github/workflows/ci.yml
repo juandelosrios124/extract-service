@@ -15,11 +15,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # setup-uv no publica tag flotante de major (no existe @v10), asi que va
-      # la version exacta. uv fijado al mismo que usa el Dockerfile.
-      - uses: astral-sh/setup-uv@v10.3.3
+      # Por SHA, como todas las actions: un tag se puede mover. uv fijado al
+      # mismo que usa el Dockerfile.
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           version: "0.10.11"
 
