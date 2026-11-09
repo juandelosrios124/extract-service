@@ -31,8 +31,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Debian (CVE-2026-76844 y CVE-2026-85091, los dos en la API gz_* de archivos
 # gzip). Se actualiza al parche; el digest de la base no se mueve, porque la
 # imagen al dia de hoy trae el mismo zlib viejo.
+# La version va fijada para que dos builds del mismo commit den el mismo
+# paquete. Si Debian la retira de trixie-security (sale un deb13u2), el build
+# falla en este paso: hay que ver la candidata nueva con
+# "apt-get update && apt-cache policy zlib1g" sobre esta misma base y
+# actualizarla aca. documents-service sigue el mismo criterio.
 RUN apt-get update \
-    && apt-get install --no-install-recommends -y zlib1g \
+    && apt-get install --no-install-recommends -y \
+       zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --gid 1001 appgroup && \
