@@ -16,7 +16,7 @@ from extractor.config import Settings
 from extractor.services.consul import (
     Registrar,
     build_registrar,
-    register_with_retry,
+    keep_registered,
     traefik_tags,
 )
 
@@ -64,9 +64,10 @@ def create_app(settings: Settings, *, consul_registrar: Optional[Registrar] = No
                 )
             # En segundo plano: si Consul todavía no está listo (p. ej. ACL
             # inicializándose), la réplica arranca igual y reintenta hasta
-            # publicarse en Traefik.
+            # publicarse en Traefik. Después verifica cada 30 s que Consul la
+            # siga teniendo y, si la borró, se vuelve a registrar (issue #61).
             registration_task = (
-                asyncio.create_task(register_with_retry(registrar), name="consul-registro")
+                asyncio.create_task(keep_registered(registrar), name="consul-registro")
                 if settings.CONSUL_ENABLED and registrar is not None
                 else None
             )
@@ -75,16 +76,10 @@ def create_app(settings: Settings, *, consul_registrar: Optional[Registrar] = No
                 yield
             finally:
                 if registration_task is not None:
-                    if not registration_task.done():
-                        registration_task.cancel()
+                    # Al cancelarse, keep_registered desregistra, y solo si se
+                    # llegó a registrar alguna vez.
+                    registration_task.cancel()
                     await asyncio.gather(registration_task, return_exceptions=True)
-                    # Solo se desregistra lo que se llegó a registrar.
-                    registered = (
-                        not registration_task.cancelled()
-                        and registration_task.exception() is None
-                    )
-                    if registered and registrar is not None:
-                        await asyncio.to_thread(registrar.deregister)
 
 
     app = FastAPI(title="PDF Extract Service", version="0.1.0", lifespan=lifespan)

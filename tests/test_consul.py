@@ -18,10 +18,12 @@ from extractor.services.consul import (
     CHECK_TIMEOUT,
     DEREGISTER_CRITICAL_AFTER,
     READINESS_PATH,
+    RECHECK_INTERVAL,
     ConsulAgent,
     Registration,
     ReplicaRegistrar,
     build_registrar,
+    keep_registered,
     register_with_retry,
     shared_network_ip,
     traefik_tags,
@@ -53,6 +55,9 @@ class FakeRegistrar:
 
     def deregister(self) -> bool:
         self.deregistered += 1
+        return True
+
+    def is_registered(self) -> bool | None:
         return True
 
 
@@ -135,6 +140,62 @@ def test_el_token_de_acl_viaja_en_el_header():
     agent.register(Registration(service_id="abc", address="172.20.0.3", port=8001))
 
     assert transport.calls[0][2]["X-Consul-Token"] == "un-uuid"
+
+
+class FakeGetter:
+    """Responde el GET de verificación con un código fijo, o falla como la red."""
+
+    def __init__(self, status: int = 200, error: Exception | None = None) -> None:
+        self.calls: list[tuple[str, dict[str, str]]] = []
+        self.status = status
+        self.error = error
+
+    def __call__(self, url: str, headers: dict[str, str]) -> int:
+        self.calls.append((url, headers))
+        if self.error is not None:
+            raise self.error
+        return self.status
+
+
+def registrador_con(getter: FakeGetter) -> ReplicaRegistrar:
+    return ReplicaRegistrar(
+        ConsulAgent(
+            "http://consul:8500/", token="un-uuid", transport=FakeTransport(), getter=getter
+        ),
+        Registration(service_id="abc123", address="172.20.0.3", port=8001),
+    )
+
+
+def test_la_verificacion_pega_al_endpoint_del_servicio_con_el_token():
+    getter = FakeGetter(200)
+
+    registrador_con(getter).is_registered()
+
+    url, headers = getter.calls[0]
+    assert url == "http://consul:8500/v1/agent/service/abc123"
+    assert headers["X-Consul-Token"] == "un-uuid"
+
+
+@pytest.mark.parametrize(("status", "esperado"), [(200, True), (404, False)])
+def test_is_registered_interpreta_200_y_404(status, esperado):
+    assert registrador_con(FakeGetter(status)).is_registered() is esperado
+
+
+@pytest.mark.parametrize(
+    "getter",
+    [
+        FakeGetter(error=OSError("connection refused")),
+        FakeGetter(error=TimeoutError("timed out")),
+        FakeGetter(403),  # ACL: no dice si el servicio está
+        FakeGetter(500),
+    ],
+)
+def test_is_registered_da_none_si_no_se_puede_saber(getter, caplog):
+    with caplog.at_level(logging.WARNING):
+        assert registrador_con(getter).is_registered() is None
+
+    assert "No se pudo verificar" in caplog.text
+    assert "un-uuid" not in caplog.text  # el token nunca se loguea
 
 
 # --- Un Consul caído no puede impedir arrancar ----------------------------
@@ -273,6 +334,128 @@ def test_el_backoff_se_frena_en_el_maximo():
     )
 
     assert esperas == [1.0, 2.0, 4.0, 4.0, 4.0]
+
+
+# --- Re-registro si Consul borra la réplica (issue #61) -------------------
+
+# Distinto de cualquier espera del backoff, para distinguirlas en `esperas`.
+CHEQUEO = 99.0
+
+
+class RegistradorGuionado:
+    """Registrador falso: los registros y las verificaciones siguen un guion."""
+
+    def __init__(self, verificaciones=(), registros=(), apagar_en_backoff=False) -> None:
+        self.verificaciones = list(verificaciones)
+        self.registros = list(registros)
+        #: Si la app se apaga durante la espera del backoff y no del chequeo.
+        self.apagar_en_backoff = apagar_en_backoff
+        self.registered = 0
+        self.checks = 0
+        self.deregistered = 0
+
+    def register(self) -> bool:
+        self.registered += 1
+        return self.registros.pop(0) if self.registros else True
+
+    def is_registered(self) -> bool | None:
+        self.checks += 1
+        return self.verificaciones.pop(0)
+
+    def deregister(self) -> bool:
+        self.deregistered += 1
+        return True
+
+
+async def correr_hasta_agotar_el_guion(registrador, esperas: list[float]) -> asyncio.Task:
+    """Corre keep_registered hasta que se queda sin guion y lo cancela (apagado).
+
+    El sleep falso no espera, salvo cuando ya no queda nada que hacer: ahí se
+    bloquea, y ese es el momento en que la app se apaga.
+    """
+    sin_guion = asyncio.Event()
+
+    async def sleep_falso(segundos: float) -> None:
+        esperas.append(segundos)
+        if segundos == CHEQUEO:
+            apagar = not registrador.verificaciones
+        else:
+            apagar = registrador.apagar_en_backoff
+        if apagar:
+            sin_guion.set()
+            await asyncio.Event().wait()  # hasta que cancelen la tarea
+
+    tarea = asyncio.create_task(
+        keep_registered(registrador, recheck_interval=CHEQUEO, sleep=sleep_falso)
+    )
+    await asyncio.wait_for(sin_guion.wait(), timeout=2)
+    tarea.cancel()
+    await asyncio.gather(tarea, return_exceptions=True)
+    return tarea
+
+
+def test_el_intervalo_de_verificacion_es_de_30_segundos():
+    assert RECHECK_INTERVAL == 30.0
+
+
+def test_si_consul_borro_la_replica_se_vuelve_a_registrar(caplog):
+    registrador = RegistradorGuionado(verificaciones=[True, False])
+    esperas: list[float] = []
+
+    with caplog.at_level(logging.INFO):
+        asyncio.run(correr_hasta_agotar_el_guion(registrador, esperas))
+
+    assert registrador.registered == 2
+    assert registrador.checks == 2
+    assert caplog.text.count("Consul ya no tiene la réplica, se vuelve a registrar") == 1
+    assert caplog.text.count("consul_registrado=True") == 2
+    # Después del re-registro vuelve a verificar: el ciclo no termina.
+    assert esperas == [CHEQUEO, CHEQUEO, CHEQUEO]
+
+
+def test_el_re_registro_usa_el_mismo_backoff():
+    # Consul la borró y todavía rechaza dos veces (p. ej. reiniciándose).
+    registrador = RegistradorGuionado(verificaciones=[False], registros=[True, False, False])
+    esperas: list[float] = []
+
+    asyncio.run(correr_hasta_agotar_el_guion(registrador, esperas))
+
+    assert registrador.registered == 4
+    assert esperas == [CHEQUEO, 1.0, 2.0, CHEQUEO]
+
+
+@pytest.mark.parametrize("verificacion", [True, None])
+def test_no_se_re_registra_si_esta_o_si_no_se_sabe(verificacion, caplog):
+    registrador = RegistradorGuionado(verificaciones=[verificacion] * 3)
+    esperas: list[float] = []
+
+    with caplog.at_level(logging.WARNING):
+        asyncio.run(correr_hasta_agotar_el_guion(registrador, esperas))
+
+    assert registrador.registered == 1
+    assert registrador.checks == 3
+    assert "se vuelve a registrar" not in caplog.text
+
+
+def test_cancelar_durante_la_verificacion_desregistra():
+    registrador = RegistradorGuionado(verificaciones=[True])
+    esperas: list[float] = []
+
+    tarea = asyncio.run(correr_hasta_agotar_el_guion(registrador, esperas))
+
+    assert tarea.cancelled()
+    assert registrador.deregistered == 1
+
+
+def test_cancelar_antes_del_primer_registro_no_desregistra():
+    registrador = RegistradorGuionado(registros=[False], apagar_en_backoff=True)
+    esperas: list[float] = []
+
+    tarea = asyncio.run(correr_hasta_agotar_el_guion(registrador, esperas))
+
+    assert tarea.cancelled()
+    assert registrador.checks == 0
+    assert registrador.deregistered == 0
 
 
 # --- Tags de Traefik en el registro (issue #32) ---------------------------
