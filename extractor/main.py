@@ -13,7 +13,12 @@ from extractor.api import extract, health
 from extractor.api.extract import RunningExtractions
 from extractor.api.middleware import RequestIdMiddleware
 from extractor.config import Settings
-from extractor.services.consul import Registrar, build_registrar, traefik_tags
+from extractor.services.consul import (
+    Registrar,
+    build_registrar,
+    register_with_retry,
+    traefik_tags,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -57,18 +62,29 @@ def create_app(settings: Settings, *, consul_registrar: Optional[Registrar] = No
                     port=settings.PORT,
                     tags=traefik_tags(settings),
                 )
-            registered = (
-                await asyncio.to_thread(registrar.register)
+            # En segundo plano: si Consul todavía no está listo (p. ej. ACL
+            # inicializándose), la réplica arranca igual y reintenta hasta
+            # publicarse en Traefik.
+            registration_task = (
+                asyncio.create_task(register_with_retry(registrar), name="consul-registro")
                 if settings.CONSUL_ENABLED and registrar is not None
-                else False
+                else None
             )
 
             try:
                 yield
             finally:
-                # Solo se desregistra lo que se llegó a registrar.
-                if registered and registrar is not None:
-                    await asyncio.to_thread(registrar.deregister)
+                if registration_task is not None:
+                    if not registration_task.done():
+                        registration_task.cancel()
+                    await asyncio.gather(registration_task, return_exceptions=True)
+                    # Solo se desregistra lo que se llegó a registrar.
+                    registered = (
+                        not registration_task.cancelled()
+                        and registration_task.exception() is None
+                    )
+                    if registered and registrar is not None:
+                        await asyncio.to_thread(registrar.deregister)
 
 
     app = FastAPI(title="PDF Extract Service", version="0.1.0", lifespan=lifespan)

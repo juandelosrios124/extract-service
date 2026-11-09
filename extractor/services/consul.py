@@ -6,12 +6,13 @@ nuevas) y un registrador que **nunca** propaga errores, porque un Consul caído
 no tiene que impedir que la réplica arranque.
 """
 
+import asyncio
 import json
 import logging
 import socket
 import urllib.request
 from dataclasses import dataclass
-from typing import Callable, Optional, Protocol
+from typing import Awaitable, Callable, Optional, Protocol
 from urllib.parse import urlsplit
 
 from extractor.config import Settings
@@ -32,6 +33,11 @@ DEREGISTER_CRITICAL_AFTER = "1m"
 # Segundos de tope para hablarle al agente: el arranque no puede quedarse
 # esperando a un Consul que no responde.
 REQUEST_TIMEOUT = 2.0
+
+# Backoff del reintento de registro: 1s, se duplica, tope 30s. Cubre a Consul
+# inicializando el ACL unos segundos después del primer intento (403).
+RETRY_INITIAL_DELAY = 1.0
+RETRY_MAX_DELAY = 30.0
 
 # (url, body, headers) -> None. Inyectable para poder testear sin red.
 Transport = Callable[[str, bytes, dict[str, str]], None]
@@ -226,6 +232,29 @@ class ReplicaRegistrar:
             return False
         logger.info("Réplica %s desregistrada de Consul", self.registration.service_id)
         return True
+
+
+async def register_with_retry(
+    registrar: Registrar,
+    *,
+    initial_delay: float = RETRY_INITIAL_DELAY,
+    max_delay: float = RETRY_MAX_DELAY,
+    sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+) -> None:
+    """Reintenta el registro, con backoff acotado, hasta lograrlo.
+
+    Corre como tarea de fondo: el arranque y ``/health`` no lo esperan. El
+    cliente es bloqueante, así que cada intento va en un thread. Cada fallo ya
+    deja su WARNING (lo loguea el registrador); al lograrlo se loguea
+    ``consul_registrado=True``. Termina al registrarse o al cancelarse la tarea.
+    """
+    delay = initial_delay
+    attempt = 1
+    while not await asyncio.to_thread(registrar.register):
+        await sleep(delay)
+        delay = min(delay * 2, max_delay)
+        attempt += 1
+    logger.info("Registro en Consul completado: consul_registrado=True (intentos=%d)", attempt)
 
 
 def build_registrar(

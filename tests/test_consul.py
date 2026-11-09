@@ -5,6 +5,7 @@ un registrador falso. Lo único que usa sockets de verdad es la resolución de l
 IP propia, y contra loopback.
 """
 
+import asyncio
 import logging
 
 import pytest
@@ -21,6 +22,7 @@ from extractor.services.consul import (
     Registration,
     ReplicaRegistrar,
     build_registrar,
+    register_with_retry,
     shared_network_ip,
     traefik_tags,
 )
@@ -190,11 +192,21 @@ def test_la_app_no_toca_consul_si_esta_deshabilitado():
     assert fake.deregistered == 0
 
 
+def esperar(condicion, segundos: float = 2.0) -> None:
+    """Espera a la tarea de fondo del registro (corre en el loop de la app)."""
+    import time
+
+    limite = time.monotonic() + segundos
+    while not condicion() and time.monotonic() < limite:
+        time.sleep(0.01)
+
+
 def test_la_app_registra_al_arrancar_y_desregistra_al_apagar():
     fake = FakeRegistrar()
     app = create_app(Settings(CONSUL_ENABLED=True, LOG_LEVEL="WARNING"), consul_registrar=fake)
 
     with TestClient(app) as client:
+        esperar(lambda: fake.registered >= 1)
         assert fake.registered == 1
         assert fake.deregistered == 0
         assert client.get("/health").status_code == 200
@@ -208,9 +220,59 @@ def test_si_el_registro_falla_la_app_igual_atiende():
 
     with TestClient(app) as client:
         assert client.get("/health").status_code == 200
+        esperar(lambda: fake.registered >= 1)
 
-    assert fake.registered == 1
+    assert fake.registered >= 1  # sigue reintentando hasta el apagado
     assert fake.deregistered == 0  # no se desregistra lo que nunca se registró
+
+
+def test_el_registro_reintenta_tras_dos_403_hasta_el_200(caplog):
+    class ConsulInicializandoAcl:
+        def __init__(self) -> None:
+            self.llamadas = 0
+
+        def __call__(self, url, body, headers) -> None:
+            self.llamadas += 1
+            if self.llamadas <= 2:
+                raise OSError("403 ACL not found")
+
+    transport = ConsulInicializandoAcl()
+    registrar = ReplicaRegistrar(
+        ConsulAgent("http://consul:8500", transport=transport),
+        Registration(service_id="abc", address="172.20.0.3", port=8001),
+    )
+    esperas: list[float] = []
+
+    async def sleep_falso(segundos: float) -> None:
+        esperas.append(segundos)
+
+    with caplog.at_level(logging.INFO):
+        asyncio.run(register_with_retry(registrar, sleep=sleep_falso))
+
+    assert transport.llamadas == 3
+    assert esperas == [1.0, 2.0]  # backoff exponencial
+    assert caplog.text.count("No se pudo registrar") == 2  # un WARNING por fallo
+    assert "consul_registrado=True" in caplog.text
+
+
+def test_el_backoff_se_frena_en_el_maximo():
+    class HastaElSexto:
+        intentos = 0
+
+        def register(self) -> bool:
+            self.intentos += 1
+            return self.intentos == 6
+
+    esperas: list[float] = []
+
+    async def sleep_falso(segundos: float) -> None:
+        esperas.append(segundos)
+
+    asyncio.run(
+        register_with_retry(HastaElSexto(), initial_delay=1.0, max_delay=4.0, sleep=sleep_falso)
+    )
+
+    assert esperas == [1.0, 2.0, 4.0, 4.0, 4.0]
 
 
 # --- Tags de Traefik en el registro (issue #32) ---------------------------
