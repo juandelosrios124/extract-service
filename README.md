@@ -190,6 +190,8 @@ Antes había además una red privada del proyecto, por donde entraba Caddy. Con 
 
 Cada réplica se registra sola en [Consul](https://github.com/juandelosrios124/pdf_extractext-infra) al arrancar y se desregistra al apagarse. **Viene encendido** en el compose desde la #32, porque es así como Traefik descubre las réplicas. Igual nunca es fatal: si Consul no está o el registro falla, la réplica arranca de todas formas y solo queda un `WARNING` en el log (el default del código, fuera de Compose, sigue siendo `false`).
 
+Ya registrada, cada 30 s verifica que el agente la siga teniendo (`GET /v1/agent/service/<id>`): si Consul la borró por `DeregisterCriticalServiceAfter` (por ejemplo, tras quedar colgada más de un minuto), se vuelve a registrar sola, con el mismo backoff, y lo avisa con el `WARNING` `Consul ya no tiene la réplica, se vuelve a registrar`; si Consul no responde, no toca nada y vuelve a mirar en el próximo ciclo.
+
 El Consul de infra corre con ACLs en `default_policy = "deny"`: sin un token válido, Consul rechaza el registro y Traefik nunca rutea las réplicas, aunque Docker las muestre `healthy`. El token va en el `.env` de este repo, con el valor de `CONSUL_EXTRACT_TOKEN` del `.env` de infra (no el de management):
 
 ```dotenv
@@ -280,7 +282,7 @@ curl -s 127.0.0.1:8080/health/ready
 # {"status":"ready","extracting_for_seconds":0.0}
 ```
 
-**Limitación conocida.** El check de Consul lleva `DeregisterCriticalServiceAfter: 1m`, así que una réplica que quede trabada más de un minuto no solo sale del balanceo: Consul la **borra del catálogo**. Como el registro se hace una sola vez, al arrancar, esa réplica no vuelve a aparecer hasta que se reinicie el contenedor. Para ese caso el `HEALTHCHECK` de Docker no ayuda, porque `/health` sigue respondiendo `ok`.
+**Réplica trabada más de un minuto.** El check de Consul lleva `DeregisterCriticalServiceAfter: 1m`, así que una réplica que quede trabada más de un minuto no solo sale del balanceo: Consul la **borra del catálogo**. Cuando se destraba, la verificación periódica (cada 30 s) lo detecta y la vuelve a registrar, sin reiniciar el contenedor (#61; ver [Service discovery con Consul](#service-discovery-con-consul)).
 
 ### Publicación en Traefik
 
