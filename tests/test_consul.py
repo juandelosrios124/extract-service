@@ -137,6 +137,62 @@ def test_el_token_de_acl_viaja_en_el_header():
     assert transport.calls[0][2]["X-Consul-Token"] == "un-uuid"
 
 
+class FakeGetter:
+    """Responde el GET de verificación con un código fijo, o falla como la red."""
+
+    def __init__(self, status: int = 200, error: Exception | None = None) -> None:
+        self.calls: list[tuple[str, dict[str, str]]] = []
+        self.status = status
+        self.error = error
+
+    def __call__(self, url: str, headers: dict[str, str]) -> int:
+        self.calls.append((url, headers))
+        if self.error is not None:
+            raise self.error
+        return self.status
+
+
+def registrador_con(getter: FakeGetter) -> ReplicaRegistrar:
+    return ReplicaRegistrar(
+        ConsulAgent(
+            "http://consul:8500/", token="un-uuid", transport=FakeTransport(), getter=getter
+        ),
+        Registration(service_id="abc123", address="172.20.0.3", port=8001),
+    )
+
+
+def test_la_verificacion_pega_al_endpoint_del_servicio_con_el_token():
+    getter = FakeGetter(200)
+
+    registrador_con(getter).is_registered()
+
+    url, headers = getter.calls[0]
+    assert url == "http://consul:8500/v1/agent/service/abc123"
+    assert headers["X-Consul-Token"] == "un-uuid"
+
+
+@pytest.mark.parametrize(("status", "esperado"), [(200, True), (404, False)])
+def test_is_registered_interpreta_200_y_404(status, esperado):
+    assert registrador_con(FakeGetter(status)).is_registered() is esperado
+
+
+@pytest.mark.parametrize(
+    "getter",
+    [
+        FakeGetter(error=OSError("connection refused")),
+        FakeGetter(error=TimeoutError("timed out")),
+        FakeGetter(403),  # ACL: no dice si el servicio está
+        FakeGetter(500),
+    ],
+)
+def test_is_registered_da_none_si_no_se_puede_saber(getter, caplog):
+    with caplog.at_level(logging.WARNING):
+        assert registrador_con(getter).is_registered() is None
+
+    assert "No se pudo verificar" in caplog.text
+    assert "un-uuid" not in caplog.text  # el token nunca se loguea
+
+
 # --- Un Consul caído no puede impedir arrancar ----------------------------
 
 
