@@ -143,15 +143,19 @@ El paso `Resumen` del job deja la cuenta de hallazgos por severidad en una tabla
 **Correrlo localmente**, sobre la imagen de desarrollo (`docker compose up --build` la deja etiquetada como `extract-service:dev`):
 
 ```bash
+docker save -o /tmp/ext.tar extract-service:dev
 docker run --rm \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v "$PWD:/scan" -w /scan \
-  anchore/grype:v0.121.2 --only-fixed --fail-on high extract-service:dev
+  -v grype-db:/cache -e GRYPE_DB_CACHE_DIR=/cache \
+  -v /tmp/ext.tar:/image.tar:ro \
+  -v "$PWD":/scan:ro -w /scan \
+  anchore/grype:v0.121.2 --only-fixed --fail-on high docker-archive:/image.tar
 ```
 
-En PowerShell, `${PWD}` en lugar de `$PWD`. El repo se monta en `/scan` y se trabaja ahí para que Grype levante el `.grype.yaml`: lo autodetecta en el directorio de trabajo. La primera corrida baja la base de vulnerabilidades (unos cientos de MB).
+**Sin `docker.sock`.** Montarle el socket del daemon a un contenedor es darle control total de Docker en la máquina, y la política de infra (sección "Escaneo de imágenes") lo prohíbe también para el escáner. En su lugar, la imagen se exporta con `docker save` y Grype lee el tar en solo lectura (`docker-archive:`). `documents-service` aplica el mismo criterio.
 
-**Qué se arregló en lugar de ignorar.** El primer escaneo encontró 4 high con fix, los 4 de la imagen base (y la base al día de hoy trae los mismos, así que mover el digest no servía de nada). El Dockerfile los resuelve en la etapa final: actualiza `zlib1g` al parche de Debian (`deb13u1`, dos CVE en la API `gz_*` de archivos gzip) y borra `pip` y `setuptools` de `/usr/local`, que el runtime no usa porque el servicio corre del venv — eso se lleva además las copias vendorizadas en `setuptools/_vendor` (`wheel` y `jaraco.context`). Los hallazgos con fix bajaron de 22 a 9, todos medium o menos. Por eso hoy no hay `.grype.yaml`.
+En PowerShell, `${PWD}` en lugar de `$PWD` (y otra ruta para el tar). El repo se monta en `/scan`, en solo lectura, y se trabaja ahí para que Grype levante el `.grype.yaml`: lo autodetecta en el directorio de trabajo. La primera corrida baja la base de vulnerabilidades (unos cientos de MB) al volumen `grype-db`, que queda para las siguientes.
+
+**Qué se arregló en lugar de ignorar.** El primer escaneo encontró 4 high con fix, los 4 de la imagen base (y la base al día de hoy trae los mismos, así que mover el digest no servía de nada). El Dockerfile los resuelve en la etapa final: actualiza `zlib1g` al parche de Debian (`deb13u1`, dos CVE en la API `gz_*` de archivos gzip), con la versión fijada para que el build sea reproducible (si Debian la retira, el build falla y hay que actualizarla; el comentario del Dockerfile dice cómo), y borra `pip` y `setuptools` de `/usr/local`, que el runtime no usa porque el servicio corre del venv — eso se lleva además las copias vendorizadas en `setuptools/_vendor` (`wheel` y `jaraco.context`). Los hallazgos con fix bajaron de 22 a 9, todos medium o menos. Por eso hoy no hay `.grype.yaml`.
 
 **Agregar una excepción.** Las excepciones van en `.grype.yaml`, versionado, bajo `ignore:`. Cada una lleva el motivo y la fecha en la que hay que revisarla; sin eso no se ignora nada:
 
