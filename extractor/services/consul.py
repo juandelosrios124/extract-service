@@ -40,6 +40,10 @@ REQUEST_TIMEOUT = 2.0
 RETRY_INITIAL_DELAY = 1.0
 RETRY_MAX_DELAY = 30.0
 
+# Cada cuántos segundos se verifica que el agente siga teniendo la réplica.
+# Consul la borra tras DEREGISTER_CRITICAL_AFTER en critical (issue #61).
+RECHECK_INTERVAL = 30.0
+
 # (url, body, headers) -> None. Inyectable para poder testear sin red.
 Transport = Callable[[str, bytes, dict[str, str]], None]
 # (url, headers) -> código HTTP. El GET de verificación, también inyectable.
@@ -296,10 +300,11 @@ async def register_with_retry(
 ) -> None:
     """Reintenta el registro, con backoff acotado, hasta lograrlo.
 
-    Corre como tarea de fondo: el arranque y ``/health`` no lo esperan. El
-    cliente es bloqueante, así que cada intento va en un thread. Cada fallo ya
-    deja su WARNING (lo loguea el registrador); al lograrlo se loguea
-    ``consul_registrado=True``. Termina al registrarse o al cancelarse la tarea.
+    Corre dentro de la tarea de fondo (``keep_registered``): el arranque y
+    ``/health`` no lo esperan. El cliente es bloqueante, así que cada intento va
+    en un thread. Cada fallo ya deja su WARNING (lo loguea el registrador); al
+    lograrlo se loguea ``consul_registrado=True``. Termina al registrarse o al
+    cancelarse la tarea.
     """
     delay = initial_delay
     attempt = 1
@@ -308,6 +313,43 @@ async def register_with_retry(
         delay = min(delay * 2, max_delay)
         attempt += 1
     logger.info("Registro en Consul completado: consul_registrado=True (intentos=%d)", attempt)
+
+
+async def keep_registered(
+    registrar: Registrar,
+    *,
+    recheck_interval: float = RECHECK_INTERVAL,
+    initial_delay: float = RETRY_INITIAL_DELAY,
+    max_delay: float = RETRY_MAX_DELAY,
+    sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+) -> None:
+    """Mantiene esta réplica en el catálogo hasta que la tarea se cancele.
+
+    Registra con backoff (``register_with_retry``) y después verifica cada
+    ``recheck_interval`` que el agente la siga teniendo. Si Consul la borró
+    (``DEREGISTER_CRITICAL_AFTER`` tras quedar colgada, issue #61), vuelve a
+    registrarla con el mismo backoff. Si la verificación no puede responder
+    (``None``), no se toca nada y se vuelve a mirar en el próximo ciclo.
+
+    Al cancelarse (apagado) se desregistra, solo si se llegó a registrar
+    alguna vez.
+    """
+    registered_once = False
+    try:
+        while True:
+            await register_with_retry(
+                registrar, initial_delay=initial_delay, max_delay=max_delay, sleep=sleep
+            )
+            registered_once = True
+            while True:
+                await sleep(recheck_interval)
+                # `is False` y no `not`: None significa "no sé", no "no estoy".
+                if await asyncio.to_thread(registrar.is_registered) is False:
+                    break
+            logger.warning("Consul ya no tiene la réplica, se vuelve a registrar")
+    finally:
+        if registered_once:
+            await asyncio.to_thread(registrar.deregister)
 
 
 def build_registrar(
