@@ -56,7 +56,7 @@ docker compose down
 
 Errores: `400` (sin PDF o PDF inválido), `413` (supera `MAX_UPLOAD_SIZE`), `422` (más páginas que `MAX_PAGES`) y `503` con `Retry-After: 1` cuando el servicio está saturado (sin cupo, pedido vencido en la cola, o extracción cortada por `EXTRACTION_DEADLINE`). Un `503` indica reintentar más tarde; no es una falla del servicio. Un `422`, en cambio, no se arregla reintentando: el documento es el problema, y por eso no lleva `Retry-After`.
 
-**Correlación.** Todo pedido acepta el header `X-Request-ID`. Si llega, se respeta; si no, se genera uno. El id vuelve en la respuesta y aparece en cada línea de log del pedido, incluido el access log de uvicorn y lo que loguea la extracción. Es el mismo header que propaga `documents-service`, así que un pedido se puede seguir por los dos servicios con el mismo id.
+**Correlación.** Todo pedido acepta el header `X-Request-ID`. Si llega y cumple `[A-Za-z0-9-]{1,64}`, se respeta; si no llega, o no cumple (vacío, largo, con espacios, saltos de línea, acentos o caracteres de control), se genera uno nuevo con `uuid4().hex` y se loguea a nivel `info` que se reemplazó, con a lo sumo los primeros 64 caracteres del valor recibido, escapados. Son las mismas reglas que `documents-service` (#69): un id inválido podría falsificar líneas de log. El id vuelve en la respuesta y aparece en cada línea de log del pedido, incluido el access log de uvicorn y lo que loguea la extracción. Es el mismo header que propaga `documents-service`, así que un pedido se puede seguir por los dos servicios con el mismo id.
 
 ## Configuración y valores por defecto
 
