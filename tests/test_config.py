@@ -54,6 +54,19 @@ def test_los_defaults_son_los_valores_de_produccion():
     assert settings.MAX_PAGES == 10000
 
 
+def test_el_tramo_de_extract_entra_en_el_presupuesto_de_timeouts():
+    """cliente 30 s > documents 27 s > Traefik 25 s >= extract 23 s (issue #68).
+
+    La espera por un cupo ya está dentro de MAX_QUEUE_WAIT (se cuenta desde
+    que llega el pedido), así que el tramo de extract es
+    MAX_QUEUE_WAIT + EXTRACTION_DEADLINE.
+    """
+    settings = Settings()
+
+    assert settings.UPLOAD_SLOT_TIMEOUT < settings.MAX_QUEUE_WAIT
+    assert settings.MAX_QUEUE_WAIT + settings.EXTRACTION_DEADLINE == 23.0
+
+
 def test_settings_are_read_from_environment(monkeypatch):
     monkeypatch.setenv("HOST", "127.0.0.1")
     monkeypatch.setenv("PORT", "9000")
