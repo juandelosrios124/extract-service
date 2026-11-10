@@ -172,7 +172,7 @@ Una excepción es temporal por definición: si en la fecha de revisión sigue ah
 
 Desde la #33 cada réplica vive en **una sola** red:
 
-- `mired`, la red Docker **externa** que comparten los tres repos del trabajo práctico ([pdf_extractext-infra](https://github.com/juandelosrios124/pdf_extractext-infra), este y [documents-service](https://github.com/OlivettiSantino/documents-service)). Gracias a ella Consul puede chequear la IP de cada réplica y `documents-service` puede llamarlas directo, sin pasar por el puerto publicado en el host.
+- `mired`, la red Docker **externa** que comparten los tres repos del trabajo práctico ([pdf_extractext-infra](https://github.com/juandelosrios124/pdf_extractext-infra), este y [documents-service](https://github.com/OlivettiSantino/documents-service)). Gracias a ella Consul puede chequear la IP de cada réplica y Traefik puede llegar a cada una sin pasar por el puerto publicado en el host. `documents-service` también está en `mired`, pero llama a extract **a través de Traefik** (`EXTRACT_URL=http://traefik`), que elige la réplica y le aplica el circuit breaker, el retry y el límite de pedidos en vuelo.
 
 Al ser externa, hay que crearla **una sola vez por máquina y antes** del primer `docker compose up`; es el único paso previo que agrega:
 
@@ -182,7 +182,7 @@ docker network create mired
 
 `docker compose down` no la borra, justamente porque la comparten los otros stacks. El nombre se configura con `SHARED_NETWORK` (default `mired`), variable común a los tres repos.
 
-Desde cualquier contenedor de `mired`, las réplicas se alcanzan en `http://extract:8001`: el DNS de Docker devuelve una IP por réplica. También responden al alias `extract-service`, pero el nombre canónico es `extract`.
+Desde cualquier contenedor de `mired`, las réplicas también se alcanzan directo en `http://extract:8001`: el DNS de Docker devuelve una IP por réplica. También responden al alias `extract-service`, pero el nombre canónico es `extract`. Ese acceso directo saltea a Traefik (y con él el circuit breaker, el retry y el límite de pedidos en vuelo): queda para diagnóstico, no para el tráfico.
 
 Antes había además una red privada del proyecto, por donde entraba Caddy. Con Caddy eliminado (#33) no quedó nadie que la use: el tráfico entra por Traefik, que también está en `mired`, así que las réplicas se declaran solo ahí.
 
@@ -279,10 +279,14 @@ Son dos preguntas distintas, con consumidores distintos:
 
 La readiness existe por una limitación concreta del `EXTRACTION_DEADLINE`: se chequea **entre páginas**, así que una sola página que cuelgue no se puede interrumpir, y con `THREAD_POOL_SIZE=1` eso deja a la réplica sin poder atender mientras `/health` sigue diciendo `ok`. `READINESS_STUCK_AFTER` (12 s) es mayor que el deadline (8 s) justamente para que solo dispare en ese caso.
 
+`/health` y `/health/ready` no se publican en Traefik, que solo rutea `PathPrefix(/extract)`: por `127.0.0.1:8080` darían `404`. Se consultan dentro de una réplica:
+
 ```bash
-curl -s 127.0.0.1:8080/health/ready
+docker compose exec extract python -c "import urllib.request; print(urllib.request.urlopen('http://localhost:8001/health/ready').read().decode())"
 # {"status":"ready","extracting_for_seconds":0.0}
 ```
+
+Con varias réplicas, `docker compose exec` entra en la primera; para otra, `--index 2`, `--index 3`, etc.
 
 **Réplica trabada más de un minuto.** El check de Consul lleva `DeregisterCriticalServiceAfter: 1m`, así que una réplica que quede trabada más de un minuto no solo sale del balanceo: Consul la **borra del catálogo**. Cuando se destraba, la verificación periódica (cada 30 s) lo detecta y la vuelve a registrar, sin reiniciar el contenedor (#61; ver [Service discovery con Consul](#service-discovery-con-consul)).
 
