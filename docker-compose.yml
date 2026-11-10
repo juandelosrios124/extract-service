@@ -73,6 +73,11 @@ services:
         limits:
           cpus: "${EXTRACT_CPUS:-1.0}"
           memory: ${EXTRACT_MEMORY:-1g}
+    # Apagado prolijo (12-Factor IX, issue #72). Un pedido puede durar hasta
+    # 23 s y uvicorn los espera hasta SHUTDOWN_TIMEOUT (25 s): Docker tiene que
+    # esperar mas antes del SIGKILL (el default es 10 s), o corta pedidos y la
+    # replica no llega a desregistrarse de Consul.
+    stop_grace_period: 30s
 
 # El punto de entrada es Traefik, que vive en el repo de infra y descubre las
 # replicas por el catalogo de Consul (issues #32 y #33). Este compose no
