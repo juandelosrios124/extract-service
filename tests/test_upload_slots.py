@@ -71,6 +71,29 @@ def test_si_el_cupo_se_libera_a_tiempo_el_pedido_espera_y_se_atiende(slow_extrac
     assert first["response"].status_code == 200
 
 
+def test_la_espera_por_el_cupo_cuenta_dentro_de_max_queue_wait(slow_extraction):
+    """MAX_QUEUE_WAIT se cuenta desde que llega el pedido, no desde que toma el
+    cupo: el tramo de extract es hasta MAX_QUEUE_WAIT + EXTRACTION_DEADLINE, no
+    UPLOAD_SLOT_TIMEOUT + MAX_QUEUE_WAIT + EXTRACTION_DEADLINE (issue #68)."""
+    settings = Settings(
+        THREAD_POOL_SIZE=2, MAX_CONCURRENT_UPLOADS=1, UPLOAD_SLOT_TIMEOUT=5, MAX_QUEUE_WAIT=0.2
+    )
+    with TestClient(create_app(settings)) as client:
+        first = {}
+        worker = threading.Thread(
+            target=lambda: first.update(response=post_pdf(client, make_pdf()))
+        )
+        worker.start()
+        time.sleep(0.1)  # el primero tiene el cupo ~0,4 s más
+        # Consigue el cupo dentro de UPLOAD_SLOT_TIMEOUT, pero ya pasó MAX_QUEUE_WAIT.
+        second = post_pdf(client, make_pdf("Segundo"))
+        worker.join()
+
+    assert first["response"].status_code == 200
+    assert second.status_code == 503
+    assert "cola" in second.json()["detail"]
+
+
 def test_el_cupo_se_libera_aunque_el_pedido_falle():
     settings = Settings(MAX_CONCURRENT_UPLOADS=1, UPLOAD_SLOT_TIMEOUT=0.2)
     with TestClient(create_app(settings)) as client:

@@ -24,8 +24,10 @@ class Settings(BaseSettings):
     THREAD_POOL_SIZE: int = Field(default=1, gt=0)
     # Backpressure: segundos máximos entre que empieza el pedido y que arranca la extracción.
     # Pasado ese tiempo el cliente ya suele haberse ido: se responde 503 sin gastar CPU.
-    # Los 5 + 15 + 8 de abajo son el tramo de extract del presupuesto de timeouts
-    # de punta a punta (cliente 30 s > documents 27 s > Traefik 25 s > extract 23 s).
+    # Se cuenta desde que llega el pedido, así que incluye la espera por un cupo
+    # (UPLOAD_SLOT_TIMEOUT). Tramo de extract en el presupuesto de timeouts de
+    # punta a punta: hasta 15 s de espera + 8 s de deadline = 23 s
+    # (cliente 30 s > documents 27 s > Traefik 25 s >= extract 23 s).
     MAX_QUEUE_WAIT: float = Field(default=15.0, gt=0)
     # Backpressure: cuántos pedidos atiende a la vez cada réplica (leer el cuerpo y extraer).
     # 0 = sin límite. Los demás esperan hasta UPLOAD_SLOT_TIMEOUT segundos y después reciben 503.
