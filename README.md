@@ -331,6 +331,23 @@ El breaker queda entonces para fallas de verdad: errores de red (réplica caída
 
 **Pedidos en vuelo.** El `inflightreq` responde `429` al pasarse del tope y está puesto en el doble de la capacidad agregada (5 réplicas × 8 cupos) a propósito: el control primario sigue siendo la admisión por cupos de la app, que es la que está medida en el informe; el tope del borde solo acota el encolado. Es un primer valor razonado, sin afinar. Sin `sourceCriterion`, Traefik cuenta los pedidos **por valor del header `Host`**: documents (`Host: traefik`) y un cliente que entra por `127.0.0.1:8080` tendrían 80 cada uno, y cualquiera saltearía el tope cambiando el `Host`. Por eso se agrupa por `X-Forwarded-Server`: Traefik borra el que manda un cliente no confiable y lo reescribe con su propio hostname, así que el tope es **uno solo para todos** y no se puede falsificar (comprobado con dos `Host` distintos y con un `X-Forwarded-Server` falso, issue #55).
 
+## Seguridad del contenedor
+
+El servicio parsea PDFs que manda cualquiera con MuPDF, una librería en C: si un PDF malicioso explotara un bug del parser, lo que importa es cuánto puede hacer el proceso comprometido. Las capas, de la imagen al runtime:
+
+| Medida | Dónde | Qué evita |
+|---|---|---|
+| Usuario sin privilegios (`appuser`, UID 1001) | `Dockerfile` | Correr como root dentro del contenedor |
+| Sin `pip` ni `setuptools` en la imagen final | `Dockerfile` | Instalar paquetes desde adentro; menos superficie que escanear |
+| `read_only: true` | `docker-compose.yml` | Modificar el código o dejar archivos en el contenedor. El servicio no escribe a disco: el PDF vive en memoria (#4, #36) |
+| `tmpfs: /tmp` de 16 MB | `docker-compose.yml` | Que una librería que necesite `/tmp` falle, sin abrir escritura al resto del sistema de archivos |
+| `cap_drop: [ALL]` | `docker-compose.yml` | Usar capabilities del kernel. Escucha en `8001`, que no necesita ninguna |
+| `no-new-privileges:true` | `docker-compose.yml` | Subir privilegios con un binario setuid o setgid |
+| `deploy.resources.limits.pids: 128` | `docker-compose.yml` | Un fork bomb. La réplica usa unos pocos hilos |
+| Límites de CPU y memoria | `docker-compose.yml` | Que una réplica consuma la máquina entera |
+
+Lo que no cubre: no hay autenticación ni TLS, y cualquier contenedor de `mired` puede llamar directo a `http://extract:8001` (ver [Red compartida](#red-compartida)).
+
 ## Arquitectura
 
 ```mermaid

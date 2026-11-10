@@ -26,6 +26,22 @@ services:
       mired:
         aliases:
           - extract-service
+    # Hardening en runtime (issue #71): defensa en profundidad para un servicio
+    # que parsea PDFs no confiables con MuPDF, una libreria en C. La imagen ya
+    # corre como appuser (UID 1001); esto acota que puede hacer un proceso
+    # comprometido. Ver "Seguridad del contenedor" en el README.
+    # Sin escritura en el sistema de archivos: el servicio no escribe a disco
+    # (el PDF vive en memoria; PYTHONDONTWRITEBYTECODE y bytecode precompilado).
+    read_only: true
+    # /tmp chico y en memoria, por si alguna libreria lo necesita.
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    # Ninguna capability: escucha en 8001 (> 1024) y no necesita ninguna.
+    cap_drop:
+      - ALL
+    # Ni setuid ni setgid pueden subir privilegios.
+    security_opt:
+      - no-new-privileges:true
     environment:
       PORT: 8001
       MAX_UPLOAD_SIZE: ${EXTRACT_MAX_UPLOAD_SIZE:-52428800}
@@ -65,6 +81,10 @@ services:
       replicas: ${EXTRACT_REPLICAS:-5}
       resources:
         limits:
+          # Tope de procesos e hilos (issue #71): corta un fork bomb. La
+          # replica usa unos pocos hilos (event loop, pool de extraccion,
+          # to_thread de Consul).
+          pids: 128
           cpus: "${EXTRACT_CPUS:-1.0}"
           memory: ${EXTRACT_MEMORY:-1g}
 
