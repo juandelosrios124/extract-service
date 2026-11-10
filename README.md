@@ -271,7 +271,9 @@ Son dos preguntas distintas, con consumidores distintos:
 | Pregunta | ¿el proceso está vivo? | ¿además puede atender? |
 | Mira el hilo de extracción | no | sí |
 | Lo consume | `HEALTHCHECK` de Docker | check de Consul → Traefik |
-| Qué pasa si falla | Docker **reinicia** el contenedor | Traefik la **saca del balanceo**, sin reiniciarla |
+| Qué pasa si falla | Docker lo marca **`unhealthy`** (y `docker compose up --wait` falla) | Traefik la **saca del balanceo**, sin reiniciarla |
+
+**Docker no reinicia un contenedor `unhealthy`.** En Docker Engine y Compose, el `HEALTHCHECK` solo cambia el estado del contenedor: reiniciar por un healthcheck fallido es algo de Swarm o Kubernetes (o de un "autoheal" aparte). Lo que sí levanta una réplica es `restart: unless-stopped` en `docker-compose.yml`, cuando el **proceso termina** (por ejemplo, un crash de MuPDF o un `OOMKilled`). Un proceso vivo pero colgado lo cubre la readiness: Traefik deja de mandarle pedidos.
 
 `/health` no mira el pool a propósito: si lo mirara, bajo carga las 5 réplicas se marcarían mal a la vez y el servicio caería completo (es la regresión que cubre `test_health.py`).
 
