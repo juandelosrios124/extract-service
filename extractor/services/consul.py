@@ -72,9 +72,9 @@ class Registration:
                 # A la IP de la réplica: "localhost", visto desde Consul, es el
                 # propio contenedor de Consul.
                 # Readiness y no liveness (issue #35): si el hilo de extracción
-                # está trabado, Traefik tiene que sacarla del balanceo. Reiniciar
-                # el contenedor es otra decisión, y la toma el HEALTHCHECK de
-                # Docker, que sigue apuntando a /health.
+                # está trabado, Traefik tiene que sacarla del balanceo. El
+                # HEALTHCHECK de Docker sigue apuntando a /health (liveness), y
+                # solo marca el contenedor unhealthy: Compose no lo reinicia.
                 "HTTP": f"http://{self.address}:{self.port}{READINESS_PATH}",
                 "Interval": CHECK_INTERVAL,
                 "Timeout": CHECK_TIMEOUT,

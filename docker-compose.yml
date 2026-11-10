@@ -17,6 +17,10 @@ services:
     # bajar extract-service:dev de Docker Hub. Para refrescar "latest":
     # docker compose -f docker-compose.yml pull extract
     image: ghcr.io/juandelosrios124/extract-service:${EXTRACT_IMAGE_TAG:-latest}
+    # Levanta la replica si el proceso termina (crash de MuPDF, OOMKilled).
+    # No actua sobre "unhealthy": Compose no reinicia por el HEALTHCHECK; una
+    # replica colgada la saca Traefik por la readiness (/health/ready).
+    restart: unless-stopped
     expose:
       - "8001"
     networks:

@@ -6,7 +6,11 @@ distintos (issue #35):
 * ``GET /health`` — **liveness**: el proceso está vivo y el event loop
   responde. No mira el pool de extracción a propósito: si lo mirara, bajo
   carga las 5 réplicas se marcarían mal a la vez y el servicio caería
-  completo. Lo usa el ``HEALTHCHECK`` de Docker, que reinicia el contenedor.
+  completo. Lo usa el ``HEALTHCHECK`` de Docker, que marca el contenedor
+  ``unhealthy`` y es lo que espera ``docker compose up --wait``. Docker
+  Engine y Compose **no reinician** un contenedor por estar ``unhealthy``
+  (eso lo hacen Swarm o Kubernetes): lo que sí lo levanta es
+  ``restart: unless-stopped`` si el proceso termina.
 * ``GET /health/ready`` — **readiness**: además, el hilo de extracción no está
   trabado. Lo usa el check de Consul, y con él Traefik saca a la réplica del
   balanceo sin reiniciarla.

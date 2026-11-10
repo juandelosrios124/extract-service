@@ -625,8 +625,8 @@ def test_la_app_registra_la_replica_con_los_tags_de_traefik(monkeypatch):
 
 def test_el_check_de_consul_mira_la_readiness_y_no_la_liveness():
     """Issue #35: si el hilo de extracción se traba, Traefik tiene que sacar a
-    la réplica del balanceo. Reiniciar el contenedor es otra decisión, y la
-    toma el HEALTHCHECK de Docker, que sigue en /health."""
+    la réplica del balanceo. El HEALTHCHECK de Docker sigue en /health
+    (liveness) y solo marca el contenedor unhealthy."""
     check = Registration(service_id="abc", address="172.20.0.4", port=8001).payload()["Check"]
 
     assert READINESS_PATH == "/health/ready"
