@@ -20,6 +20,9 @@ def main() -> None:
         port=settings.PORT,
         log_config=None,  # keep uvicorn's logs on our stdout handler
         log_level=settings.LOG_LEVEL.lower(),
+        # Al recibir SIGTERM deja de aceptar conexiones y espera a los pedidos
+        # en curso hasta este tope; después corre el lifespan (issue #72).
+        timeout_graceful_shutdown=settings.SHUTDOWN_TIMEOUT,
     )
 
 

@@ -47,6 +47,12 @@ class Settings(BaseSettings):
     # caso que el deadline no puede cortar, una sola página colgada.
     # 0 = readiness siempre lista.
     READINESS_STUCK_AFTER: float = Field(default=12.0, ge=0)
+    # Apagado prolijo (12-Factor IX, issue #72): segundos que uvicorn espera a
+    # los pedidos en curso antes de cortarlos. Tiene que ser MAYOR que
+    # MAX_QUEUE_WAIT + EXTRACTION_DEADLINE (23 s, el pedido más largo) y MENOR
+    # que el stop_grace_period de docker-compose.yml (30 s), o Docker mata la
+    # réplica antes de que el lifespan la desregistre de Consul.
+    SHUTDOWN_TIMEOUT: float = Field(default=25.0, gt=0)
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     # json para los recolectores de logs, text para leer en una terminal.
     LOG_FORMAT: Literal["text", "json"] = "text"

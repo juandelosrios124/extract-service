@@ -95,6 +95,8 @@ EXTRACT_MAX_CONCURRENT_UPLOADS=0 EXTRACT_MAX_QUEUE_WAIT=1000 docker compose up -
 
 En PowerShell: `$env:EXTRACT_MAX_CONCURRENT_UPLOADS="0"; $env:EXTRACT_MAX_QUEUE_WAIT="1000"; docker compose up -d --force-recreate --wait`.
 
+**Apagado prolijo (12-Factor IX).** Al recibir `SIGTERM` (`docker compose stop`, `down` o un `up` que recrea las réplicas), uvicorn deja de aceptar conexiones y espera a los pedidos en curso hasta `SHUTDOWN_TIMEOUT` (25 s); después corre el lifespan, que desregistra la réplica de Consul. Docker, a su vez, espera `stop_grace_period: 30s` antes del `SIGKILL` (su default es 10 s, menos que un pedido largo). El orden tiene que ser este: pedido más largo (23 s) < `SHUTDOWN_TIMEOUT` (25 s) < `stop_grace_period` (30 s), y lo verifica `tests/test_shutdown.py`. Mientras la réplica se apaga, una conexión nueva de Traefik se rechaza y el retry la manda a otra réplica (ver [Publicación en Traefik](#publicación-en-traefik)). `SHUTDOWN_TIMEOUT` no se pasa desde Compose a propósito: subirlo sin subir también el `stop_grace_period` rompería ese orden.
+
 ## Imagen y releases (12-Factor V)
 
 La imagen se construye **una sola vez por commit**, en la CI, y se publica en GHCR: `ghcr.io/juandelosrios124/extract-service`. Desplegar no compila: una **release es una imagen con tag + el `.env`** de la máquina. Dos máquinas con el mismo tag corren exactamente el mismo binario, y volver atrás es cambiar el tag.
