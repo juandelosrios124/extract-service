@@ -221,7 +221,7 @@ Lo que registra cada réplica:
 | `Name` | `extract` | El nombre con el que la busca `documents-service` |
 | `Address` | su IP en `mired` | Se resuelve preguntando por qué interfaz saldría un paquete hacia Consul, en vez de confiar en el orden de `gethostbyname` |
 | `Port` | `8001` | |
-| `Check` | `HTTP` a `http://<IP>:8001/health`, `Interval 10s`, `Timeout 2s` | A la IP de la réplica y no a `localhost`, que desde Consul es el propio contenedor de Consul |
+| `Check` | `HTTP` a `http://<IP>:8001/health/ready`, `Interval 10s`, `Timeout 2s` | Readiness y no liveness (#35): si el hilo de extracción se traba, Traefik saca a la réplica del balanceo sin reiniciarla (ver [Liveness y readiness](#liveness-y-readiness)). A la IP de la réplica y no a `localhost`, que desde Consul es el propio contenedor de Consul |
 | `DeregisterCriticalServiceAfter` | `1m` | Un `docker kill` no da tiempo a desregistrarse: Consul la saca del catálogo por su cuenta |
 
 Comprobar:
